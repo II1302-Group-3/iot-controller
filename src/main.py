@@ -25,6 +25,8 @@ db = firebase.init_database(
 	lambda l: print(f"New target light level: {l}")
 )
 
+print("Done!")
+
 try:
 	while True:
 		# Do useful stuff here
