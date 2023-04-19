@@ -7,9 +7,9 @@
 3. Run `pipenv sync`
 4. Run the program with `pipenv run python src/main.py`
 
-## Firebase API key
+## Firebase API keys
 
-A Firebase API config needs to be put in `~/green-garden/firebase.json` for the controller to work. The controller uses the Firebase Admin SDK, but with a limited service account to ensure the smart garden is only allowed to read and write its own data in the database.
+A Firebase API config needs to be put in `~/green-garden/firebase.json` for the controller to work. The controller uses the Firebase Admin SDK which will be replaced once better security is added.
 
 ## Serial Number
 
@@ -20,5 +20,5 @@ Every Green Garden has a unique serial number that users can register in the app
 
 ## Components
 
-* `src/firebase`: Contains functions for connecting to Firebase to retrieve target configuration and send updated sensor values
+* `src/firebase.py`: Contains functions for connecting to Firebase to retrieve target configuration and send updated sensor values
 * `src/serial.py`: Contains functions for managing the serial number of the garden

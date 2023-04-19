@@ -1,3 +1,5 @@
+import firebase
+
 import platform
 import sys
 import time
@@ -14,13 +16,22 @@ print(f"System: {system}")
 print(f"Serial number: '{current_serial}'")
 print("")
 
+print("Authenticating with Firebase...")
+
+# Firebase listens on background threads
+db = firebase.init_database(
+	current_serial,
+	lambda m: print(f"New target moisture: {m}"),
+	lambda l: print(f"New target light level: {l}")
+)
+
 try:
-	i = 0
 	while True:
-		i += 1
-		print(f"{i}")
+		# Do useful stuff here
 		time.sleep(1)
 except KeyboardInterrupt:
 	print("")
 	print("Exiting...")
+
+	db.stop()
 	sys.exit(0)
