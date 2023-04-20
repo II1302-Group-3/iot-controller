@@ -22,7 +22,7 @@ print("Authenticating with Firebase...")
 # Firebase listens on background threads
 db = firebase.init_database(
 	current_serial,
-	lambda l: print(f"Led state: {l}")
+	lambda l: print(f"Led state: {l}"),
 	lambda m: print(f"New target moisture: {m}"),
 	lambda l: print(f"New target light level: {l}")
 )
