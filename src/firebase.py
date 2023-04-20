@@ -6,11 +6,12 @@ from firebase_admin import credentials
 from firebase_admin import db
 
 class FirebaseData:
+	led_on = 0
 	target_moisture = 0
 	target_light_level = 0
 	stop = None
 
-def init_database(serial, on_new_moisture_target, on_new_light_level_target):
+def init_database(serial, on_led_on, on_new_moisture_target, on_new_light_level_target):
 	home_dir = pathlib.Path.home() / "green-garden"
 	cred_file = home_dir / "firebase.json"
 
@@ -28,8 +29,14 @@ def init_database(serial, on_new_moisture_target, on_new_light_level_target):
 		print("Error trying to access /garden/placeholder")
 
 	user_db_object = FirebaseData()
+	user_db_object.led_on = db.reference(f"garden/placeholder/test_led_on").get()
 	user_db_object.target_moisture = db.reference(f"garden/placeholder/target_moisture").get()
 	user_db_object.target_light_level = db.reference(f"garden/placeholder/target_light_level").get()
+
+	def callback_led_on(event):
+		if user_db_object.led_on != event.data:
+			user_db_object.led_on = event.data
+			on_led_on(event.data)
 
 	def callback_new_moisture_target(event):
 		if user_db_object.target_moisture != event.data:
@@ -42,6 +49,7 @@ def init_database(serial, on_new_moisture_target, on_new_light_level_target):
 			on_new_light_level_target(event.data)
 
 	stoppers = [
+		db.reference(f"garden/placeholder/test_led_on").listen(callback_led_on),
 		db.reference(f"garden/placeholder/target_moisture").listen(callback_new_moisture_target),
 		db.reference(f"garden/placeholder/target_light_level").listen(callback_new_light_level)
 	]

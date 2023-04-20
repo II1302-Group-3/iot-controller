@@ -22,27 +22,24 @@ print("Authenticating with Firebase...")
 # Firebase listens on background threads
 db = firebase.init_database(
 	current_serial,
+	lambda l: print(f"Led state: {l}")
 	lambda m: print(f"New target moisture: {m}"),
 	lambda l: print(f"New target light level: {l}")
 )
 
 print("Done!")
- 
+
 addr = 0x8 # bus address
 bus = SMBus(1) # indicates /dev/ic2-1
-numb = 1
-print ("Enter 1 for ON or 0 for OFF")
+
 try:
-	while numb == 1:
- 
-	ledstate = input(">>>>   ")
- 
-	if ledstate == "1":
-		bus.write_byte(addr, 0x1) # switch it on
-	elif ledstate == "0":
-		bus.write_byte(addr, 0x0) # switch it on
-	else:
-		numb = 0
+	while True:
+		if db.led_on == 1:
+			bus.write_byte(addr, 0x1) # switch it on
+		elif db.led_on == 0:
+			bus.write_byte(addr, 0x0) # switch it off
+
+		time.sleep(1)
 except KeyboardInterrupt:
 	print("")
 	print("Exiting...")
