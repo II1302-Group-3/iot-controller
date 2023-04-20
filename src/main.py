@@ -5,6 +5,7 @@ import sys
 import time
 
 import serial
+from smbus import SMBus
 current_serial = serial.get_serial_number()
 
 # TODO: Check if we are running on Raspberry Pi
@@ -26,11 +27,22 @@ db = firebase.init_database(
 )
 
 print("Done!")
-
+ 
+addr = 0x8 # bus address
+bus = SMBus(1) # indicates /dev/ic2-1
+numb = 1
+print ("Enter 1 for ON or 0 for OFF")
 try:
-	while True:
-		# Do useful stuff here
-		time.sleep(1)
+	while numb == 1:
+ 
+	ledstate = input(">>>>   ")
+ 
+	if ledstate == "1":
+		bus.write_byte(addr, 0x1) # switch it on
+	elif ledstate == "0":
+		bus.write_byte(addr, 0x0) # switch it on
+	else:
+		numb = 0
 except KeyboardInterrupt:
 	print("")
 	print("Exiting...")
