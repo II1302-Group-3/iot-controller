@@ -1,0 +1,13 @@
+5v arduino -> breadboard +
+GND -> breadboard -
+
+Ardunio Gnd -> Pin 20 raspberry Pi
+A4 -> Pin 3 raspberry
+A5 -> Pin 5 raspberry
+ 
+
+arudinio pin 13 -> Cntrl relay
+5v breadboard -> relay
+gnd breadboard -> relay
+breadboard 5v -> relay common
+breadboard LED + -> relay normal closed
