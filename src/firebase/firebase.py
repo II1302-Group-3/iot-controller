@@ -13,10 +13,13 @@ class FirebaseDatabase:
 		# We can't watch all values because then we will get a notification when we upload sensor values
 		watched_keys = ["test_led_on", "target_moisture", "target_light_level"]
 		# TODO: This will spawn one thread for every watched key, maybe too much?
-		self.streams = [database.child(f"{path}/{k}").stream(self.stream_handler, token, k) for k in watched_keys]
+		self.streams = [database.child(f"{path}/{k}").stream(lambda m: self.stream_handler(m, callbacks.get(k, None)), token, k) for k in watched_keys]
 
-	def stream_handler(self, message):
+	def stream_handler(self, message, callback):
 		print(message)
+
+		if callback:
+			callback(message["data"])
 
 	def stop(self):
 		[s.close() for s in self.streams]
