@@ -5,6 +5,8 @@ name = "piwheels"
 
 [packages]
 pyrebase = "*"
+requests = "*"
+pwinput = "*"
 
 [dev-packages]
 

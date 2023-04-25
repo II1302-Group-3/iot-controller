@@ -5,7 +5,7 @@ import sys
 import time
 
 import serial
-current_serial = serial.get_serial_number()
+login = serial.get_login()
 
 # TODO: Check if we are running on Raspberry Pi
 system = f"{platform.uname().system} {platform.uname().release}"
@@ -24,14 +24,14 @@ if is_raspberry_pi:
 print("Green Garden IoT Controller started")
 print(f"Python: {sys.version_info.major}.{sys.version_info.minor}")
 print(f"System: {device_type} {system}")
-print(f"Serial number: '{current_serial}'")
+print(f"Serial number: '{login}'")
 print("")
 
 print("Authenticating with Firebase...")
 
 # Firebase listens on background threads
 db = firebase.init_database(
-	current_serial,
+	login,
 	lambda l: print(f"Led state: {l}"),
 	lambda m: print(f"New target moisture: {m}"),
 	lambda l: print(f"New target light level: {l}")
