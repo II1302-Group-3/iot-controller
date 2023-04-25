@@ -21,7 +21,7 @@ def register_new_serial_number(serial):
 	params = { "serial": serial, "password": password }
 	key = requests.get("https://europe-west1-greengarden-iot.cloudfunctions.net/signSerialNumber", params=params).text
 
-	if key == "missing_parameter": print("Missing paramter error")
+	if key == "missing_parameter": print("Missing parameter error")
 	elif key == "wrong_password": print("Wrong password")
 	else:
 		with open(serial_file, "w") as file:

@@ -4,11 +4,15 @@ verify_ssl = true
 name = "piwheels"
 
 [packages]
-pyrebase = "*"
 requests = "*"
 pwinput = "*"
 smbus2 = "*"
 pyserial = "*"
+sseclient = "*"
+oauth2client = "*"
+gcloud = "*"
+python-jwt = "*"
+requests-toolbelt = "*"
 
 [dev-packages]
 

@@ -29,7 +29,7 @@ print("")
 
 print("Authenticating with Firebase...")
 
-# Firebase listens on background threads
+# Firebase listens on a background thread
 db = firebase.init_database(
 	login,
 	lambda l: print(f"Led state: {l}"),
@@ -39,8 +39,9 @@ db = firebase.init_database(
 
 print("Done!")
 
-addr = 0x8 # bus address
-bus = SMBus(1) # indicates /dev/ic2-1
+if is_raspberry_pi:
+	addr = 0x8 # bus address
+	bus = SMBus(1) # indicates /dev/ic2-1
 
 try:
 	while True:

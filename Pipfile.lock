@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "dd35b34a3cd4245b912b6cb4b0b6eda5fbdfb5646a75c1f3f947d9d258e31206"
+            "sha256": "86ba58c626e414a57a6350ce62fdb8d226df05b593139aacf4d6f30d820cc481"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -33,6 +33,7 @@
             "hashes": [
                 "sha256:cb66b573874f4f2a9e7710f58d392fa5177c0f8ed61b913b065ea7c4f6fc7dbd"
             ],
+            "index": "piwheels",
             "version": "==0.18.3"
         },
         "googleapis-common-protos": {
@@ -56,10 +57,17 @@
             "markers": "python_version >= '3.5'",
             "version": "==3.4"
         },
+        "jws": {
+            "hashes": [
+                "sha256:030864d792a6f2f0136d4e6b98434fa7437848d2bee4b1dafb8ab3e1d566610b"
+            ],
+            "version": "==0.1.3"
+        },
         "oauth2client": {
             "hashes": [
                 "sha256:b8a81cc5d60e2d364f0b1b98f958dbd472887acaf1a5b05e21c28c31a2d6d3ac"
             ],
+            "index": "piwheels",
             "version": "==4.1.3"
         },
         "protobuf": {
@@ -97,19 +105,19 @@
             "markers": "python_version >= '3.1'",
             "version": "==3.0.9"
         },
-        "pyrebase": {
-            "hashes": [
-                "sha256:74e643df501e5905571f6003c0a8da854f7d4cac683c582d5a411100f0c6c4cd"
-            ],
-            "index": "piwheels",
-            "version": "==3.0.11"
-        },
         "pyserial": {
             "hashes": [
                 "sha256:c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0"
             ],
             "index": "piwheels",
             "version": "==3.5"
+        },
+        "python-jwt": {
+            "hashes": [
+                "sha256:147634445f3a2001d574b964a7597099aeb62841de360388399ba28e3bc10122"
+            ],
+            "index": "piwheels",
+            "version": "==2.0.2"
         },
         "requests": {
             "hashes": [
@@ -122,7 +130,7 @@
             "hashes": [
                 "sha256:79101932959299c29508c2f22c80d154eb9b6adcc282375533902fa39138436d"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+            "index": "piwheels",
             "version": "==0.10.1"
         },
         "rsa": {
@@ -150,6 +158,7 @@
             "hashes": [
                 "sha256:4f8958d266bf110c5306e34de7b3df8d3d9b52bc432940bed1aa9375b0808200"
             ],
+            "index": "piwheels",
             "version": "==0.0.27"
         },
         "urllib3": {
