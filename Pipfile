@@ -7,6 +7,7 @@ name = "piwheels"
 pyrebase = "*"
 requests = "*"
 pwinput = "*"
+smbus2 = "*"
 
 [dev-packages]
 

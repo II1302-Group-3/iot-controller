@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "587092f73547f25107598668f2bf1c84c74f63e5dc7c4837030bfa19b4ca97fa"
+            "sha256": "68a485da24718cce51472ea31f49c80ccda3725f84e7b2e309cb2cc969dcd127"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -131,6 +131,13 @@
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==1.16.0"
+        },
+        "smbus2": {
+            "hashes": [
+                "sha256:007c2bcb7f4908b4a668fbcc2260b227ec3da28f122fb9d98c67b9081d9c5b3f"
+            ],
+            "index": "piwheels",
+            "version": "==0.4.2"
         },
         "sseclient": {
             "hashes": [

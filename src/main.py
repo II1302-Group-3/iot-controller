@@ -19,7 +19,7 @@ except:
 	is_raspberry_pi = False
 
 if is_raspberry_pi:
-	from smbus import SMBus
+	from smbus2 import SMBus
 
 print("Green Garden IoT Controller started")
 print(f"Python: {sys.version_info.major}.{sys.version_info.minor}")

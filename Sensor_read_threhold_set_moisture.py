@@ -2,7 +2,7 @@
 import time
 
 import serial
-from smbus import SMBus
+from smbus2 import SMBus
 
 if __name__ == '__main__':
 	ser = serial.Serial('/dev/ttyACM0',57600, timeout=1)
@@ -30,4 +30,4 @@ try:
 except KeyboardInterrupt:
 	print("")
 	print("Exiting...")
-	
+
