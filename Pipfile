@@ -8,6 +8,7 @@ pyrebase = "*"
 requests = "*"
 pwinput = "*"
 smbus2 = "*"
+pyserial = "*"
 
 [dev-packages]
 
