@@ -5,15 +5,25 @@ import sys
 import time
 
 import serial
-from smbus import SMBus
 current_serial = serial.get_serial_number()
 
 # TODO: Check if we are running on Raspberry Pi
 system = f"{platform.uname().system} {platform.uname().release}"
+try:
+	# https://raspberrypi.stackexchange.com/questions/5100/detect-that-a-python-program-is-running-on-the-pi
+	with open("/sys/firmware/devicetree/base/model", "r") as file:
+		device_type = file.readline().strip()
+		is_raspberry_pi = "Raspberry Pi" in device_type
+except:
+	device_type = "Computer"
+	is_raspberry_pi = False
+
+if is_raspberry_pi:
+	from smbus import SMBus
 
 print("Green Garden IoT Controller started")
 print(f"Python: {sys.version_info.major}.{sys.version_info.minor}")
-print(f"System: {system}")
+print(f"System: {device_type} {system}")
 print(f"Serial number: '{current_serial}'")
 print("")
 
@@ -34,10 +44,11 @@ bus = SMBus(1) # indicates /dev/ic2-1
 
 try:
 	while True:
-		if db.led_on == 1:
-			bus.write_byte(addr, 0x1) # switch it on
-		elif db.led_on == 0:
-			bus.write_byte(addr, 0x0) # switch it off
+		if is_raspberry_pi:
+			if db.led_on == 1:
+				bus.write_byte(addr, 0x1) # switch it on
+			elif db.led_on == 0:
+				bus.write_byte(addr, 0x0) # switch it off
 
 		time.sleep(1)
 except KeyboardInterrupt:
