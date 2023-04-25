@@ -17,42 +17,35 @@ if not home_dir.exists():
 	home_dir.mkdir()
 
 def register_new_serial_number(serial):
-	password = pwinput()
-	params = { "serial": serial, "password": password }
+	params = { "serial": serial, "password": pwinput() }
 	key = requests.get("https://europe-west1-greengarden-iot.cloudfunctions.net/signSerialNumber", params=params).text
 
-	if key == "missing_parameter": print("Missing parameter error")
-	elif key == "wrong_password": print("Wrong password")
+	if key == "missing_parameter": sys.exit("Missing parameter error")
+	elif key == "wrong_password": sys.exit("Wrong password")
 	else:
 		with open(serial_file, "w") as file:
 			file.write(f"{serial}\n")
 			file.write(f"{key}\n")
 
-		return { "serial": serial, "unique_key": key }
+		return { "serial": serial, "key": key }
 
-	sys.exit(1)
-
-def get_login():
+def get_serial_and_key():
 	args = args_parser.parse_args()
 
 	if args.new_serial:
 		new_serial = str(random.randint(0, 999999999999)).zfill(12)
-
-		print(f"Generated new serial number: {new_serial}")
-		print("")
+		print(f"Generated new serial number: {new_serial}\n")
 
 		return register_new_serial_number(new_serial)
 	elif args.set_serial != None:
+		args.set_serial = args.set_serial.strip()
+
 		if not args.set_serial.isdigit() or int(args.set_serial) < 0 or int(args.set_serial) > 999999999999:
-			print("Warning: Serial number should have 12 digits")
-			print("")
+			print("Warning: Serial number should have 12 digits\n")
 
 		return register_new_serial_number(args.set_serial)
 	else:
-		if not serial_file.exists():
-			print("Error: No serial number set for this garden")
-			print("Generate a new serial with --new-serial or create a serial.txt file")
-			sys.exit(1)
+		if not serial_file.exists(): sys.exit("No serial number set for this garden")
 
 		with open(serial_file, "r") as file:
-			return { "serial": file.readline().strip(), "unique_key": file.readline().strip() }
+			return { "serial": file.readline().strip(), "key": file.readline().strip() }

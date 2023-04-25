@@ -8,10 +8,10 @@ except:
     from urllib import urlencode, quote
 import json
 import math
-from random import uniform
+from random import randrange
 import time
 from collections import OrderedDict
-from sseclient import SSEClient
+from .pyre_sseclient import SSEClient
 import threading
 import socket
 from oauth2client.service_account import ServiceAccountCredentials
@@ -85,6 +85,15 @@ class Auth:
         self.current_user = request_object.json()
         return request_object.json()
 
+    def sign_in_anonymous(self):
+        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key={0}".format(self.api_key)
+        headers = {"content-type": "application/json; charset=UTF-8" }
+        data = json.dumps({"returnSecureToken": True})
+        request_object = requests.post(request_ref, headers=headers, data=data)
+        raise_detailed_error(request_object)
+        self.current_user = request_object.json()
+        return request_object.json()
+
     def sign_in_with_custom_token(self, token):
         request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken?key={0}".format(self.api_key)
         headers = {"content-type": "application/json; charset=UTF-8"}
@@ -144,6 +153,25 @@ class Auth:
         request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key={0}".format(self.api_key)
         headers = {"content-type": "application/json; charset=UTF-8" }
         data = json.dumps({"email": email, "password": password, "returnSecureToken": True})
+        request_object = requests.post(request_ref, headers=headers, data=data)
+        raise_detailed_error(request_object)
+        return request_object.json()
+
+    def delete_user_account(self, id_token):
+        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/deleteAccount?key={0}".format(self.api_key)
+        headers = {"content-type": "application/json; charset=UTF-8"}
+        data = json.dumps({"idToken": id_token})
+        request_object = requests.post(request_ref, headers=headers, data=data)
+        raise_detailed_error(request_object)
+        return request_object.json()
+
+    def update_profile(self, id_token, display_name = None, photo_url = None, delete_attribute = None):
+        """
+        https://firebase.google.com/docs/reference/rest/auth#section-update-profile
+        """
+        request_ref = "https://identitytoolkit.googleapis.com/v1/accounts:update?key={0}".format(self.api_key)
+        headers = {"content-type": "application/json; charset=UTF-8"}
+        data = json.dumps({"idToken": id_token, "displayName": display_name, "photoURL": photo_url, "deleteAttribute": delete_attribute, "returnSecureToken": True})
         request_object = requests.post(request_ref, headers=headers, data=data)
         raise_detailed_error(request_object)
         return request_object.json()
@@ -220,7 +248,7 @@ class Database:
             parameters['auth'] = token
         for param in list(self.build_query):
             if type(self.build_query[param]) is str:
-                parameters[param] = quote('"' + self.build_query[param] + '"')
+                parameters[param] = '"' + self.build_query[param] + '"'
             elif type(self.build_query[param]) is bool:
                 parameters[param] = "true" if self.build_query[param] else "false"
             else:
@@ -267,7 +295,7 @@ class Database:
             elif build_query["orderBy"] == "$value":
                 sorted_response = sorted(request_dict.items(), key=lambda item: item[1])
             else:
-                sorted_response = sorted(request_dict.items(), key=lambda item: item[1][build_query["orderBy"]])
+                sorted_response = sorted(request_dict.items(), key=lambda item: (build_query["orderBy"] in item[1], item[1].get(build_query["orderBy"], "")))
         return PyreResponse(convert_to_pyre(sorted_response), query_key)
 
     def push(self, data, token=None, json_kwargs={}):
@@ -302,9 +330,9 @@ class Database:
         raise_detailed_error(request_object)
         return request_object.json()
 
-    def stream(self, stream_handler, token=None, stream_id=None):
+    def stream(self, stream_handler, token=None, stream_id=None, is_async=True):
         request_ref = self.build_request_url(token)
-        return Stream(request_ref, stream_handler, self.build_headers, stream_id)
+        return Stream(request_ref, stream_handler, self.build_headers, stream_id, is_async)
 
     def check_token(self, database_url, path, token):
         if token:
@@ -323,8 +351,7 @@ class Database:
             now = int(math.floor(now / 64))
         new_id = "".join(time_stamp_chars)
         if not duplicate_time:
-            for i in range(0, 12):
-                self.last_rand_chars.append(int(math.floor(uniform(0, 1) * 64)))
+            self.last_rand_chars = [randrange(64) for _ in range(12)]
         else:
             for i in range(0, 11):
                 if self.last_rand_chars[i] == 63:
@@ -334,15 +361,61 @@ class Database:
             new_id += push_chars[self.last_rand_chars[i]]
         return new_id
 
-    def sort(self, origin, by_key):
+    def sort(self, origin, by_key, reverse=False):
         # unpack pyre objects
         pyres = origin.each()
         new_list = []
         for pyre in pyres:
             new_list.append(pyre.item)
         # sort
-        data = sorted(dict(new_list).items(), key=lambda item: item[1][by_key])
+        data = sorted(dict(new_list).items(), key=lambda item: item[1][by_key], reverse=reverse)
         return PyreResponse(convert_to_pyre(data), origin.key())
+
+    def get_etag(self, token=None, json_kwargs={}):
+        request_ref = self.build_request_url(token)
+        headers = self.build_headers(token)
+        # extra header to get ETag
+        headers['X-Firebase-ETag'] = 'true'
+        request_object = self.requests.get(request_ref, headers=headers)
+        raise_detailed_error(request_object)
+        return {
+           'ETag': request_object.headers['ETag'],
+           'value': request_object.json()
+        }
+
+    def conditional_set(self, data, etag, token=None, json_kwargs={}):
+        request_ref = self.check_token(self.database_url, self.path, token)
+        self.path = ""
+        headers = self.build_headers(token)
+        headers['if-match'] = etag
+        request_object = self.requests.put(request_ref, headers=headers, data=json.dumps(data, **json_kwargs).encode("utf-8"))
+
+        # ETag didn't match, so we should return the correct one for the user to try again
+        if request_object.status_code == 412:
+            return {
+               'ETag': request_object.headers['ETag'],
+               'value': request_object.json()
+            }
+
+        raise_detailed_error(request_object)
+        return request_object.json()
+
+    def conditional_remove(self, etag, token=None):
+        request_ref = self.check_token(self.database_url, self.path, token)
+        self.path = ""
+        headers = self.build_headers(token)
+        headers['if-match'] = etag
+        request_object = self.requests.delete(request_ref, headers=headers)
+
+        # ETag didn't match, so we should return the correct one for the user to try again
+        if request_object.status_code == 412:
+            return {
+               'ETag': request_object.headers['ETag'],
+               'value': request_object.json()
+            }
+
+        raise_detailed_error(request_object)
+        return request_object.json()
 
 
 class Storage:
@@ -391,19 +464,34 @@ class Storage:
             raise_detailed_error(request_object)
             return request_object.json()
 
-    def delete(self, name):
-        self.bucket.delete_blob(name)
+    def delete(self, name, token):
+        if self.credentials:
+            self.bucket.delete_blob(name)
+        else:
+            request_ref = self.storage_bucket + "/o?name={0}".format(name)
+            if token:
+                headers = {"Authorization": "Firebase " + token}
+                request_object = self.requests.delete(request_ref, headers=headers)
+            else:
+                request_object = self.requests.delete(request_ref)
+            raise_detailed_error(request_object)
 
-    def download(self, filename, token=None):
+    def download(self, path, filename, token=None):
         # remove leading backlash
-        path = self.path
         url = self.get_url(token)
-        self.path = None
         if path.startswith('/'):
             path = path[1:]
         if self.credentials:
             blob = self.bucket.get_blob(path)
-            blob.download_to_filename(filename)
+            if not blob is None:
+                blob.download_to_filename(filename)
+        elif token:
+             headers = {"Authorization": "Firebase " + token}
+             r = requests.get(url, stream=True, headers=headers)
+             if r.status_code == 200:
+                 with open(filename, 'wb') as f:
+                    for chunk in r:
+                         f.write(chunk)
         else:
             r = requests.get(url, stream=True)
             if r.status_code == 200:
@@ -452,8 +540,11 @@ class PyreResponse:
         self.pyres = pyres
         self.query_key = query_key
 
+    def __getitem__(self,index):
+       return self.pyres[index]
+
     def val(self):
-        if isinstance(self.pyres, list):
+        if isinstance(self.pyres, list) and self.pyres:
             # unpack pyres into OrderedDict
             pyre_list = []
             # if firebase response was a list
@@ -516,14 +607,18 @@ class ClosableSSEClient(SSEClient):
 
 
 class Stream:
-    def __init__(self, url, stream_handler, build_headers, stream_id):
+    def __init__(self, url, stream_handler, build_headers, stream_id, is_async):
         self.build_headers = build_headers
         self.url = url
         self.stream_handler = stream_handler
         self.stream_id = stream_id
         self.sse = None
         self.thread = None
-        self.start()
+
+        if is_async:
+            self.start()
+        else:
+            self.start_stream()
 
     def make_session(self):
         """

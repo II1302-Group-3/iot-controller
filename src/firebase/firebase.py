@@ -1,26 +1,45 @@
-from pyrebase import initialize_app
+from pyrebase4 import initialize_app
 from .config import config
 
 import requests
 import sys
 
-def FirebaseData():
-	led_on = 1
+class FirebaseDatabase:
+	def __init__(self, token, database, path, callbacks):
+		self.led_on = database.child(f"{path}/test_led_on").get(token).val()
+		self.target_moisture = database.child(f"{path}/target_moisture").get(token).val()
+		self.target_light_level = database.child(f"{path}/target_light_level").get(token).val()
 
-def init_database(login, f1, f2, f3):
+		# We can't watch all values because then we will get a notification when we upload sensor values
+		watched_keys = ["test_led_on", "target_moisture", "target_light_level"]
+		# TODO: This will spawn one thread for every watched key, maybe too much?
+		self.streams = [database.child(f"{path}/{k}").stream(self.stream_handler, token, k) for k in watched_keys]
+
+	def stream_handler(self, message):
+		print(message)
+
+	def stop(self):
+		[s.close() for s in self.streams]
+
+def init_database(login, callbacks={}):
 	firebase = initialize_app(config)
 	auth = firebase.auth()
 
 	# TODO: Save token and refresh
+	key = requests.get("https://europe-west1-greengarden-iot.cloudfunctions.net/requestNewToken", params=login).text
 
-	params = { "serial": login["serial"], "key": login["unique_key"] }
-	key = requests.get("https://europe-west1-greengarden-iot.cloudfunctions.net/requestNewToken", params=params).text
-
-	if key == "missing_parameter": print("Missing parameter error")
-	elif key == "invalid_serial": print("Invalid serial")
-	elif key == "wrong_key": print("Wrong key for this serial number")
+	if key == "missing_parameter": sys.exit("Missing parameter error")
+	elif key == "invalid_serial": sys.exit("Invalid serial")
+	elif key == "wrong_key": sys.exit("Wrong key for this serial number")
 	else:
 		user = auth.sign_in_with_custom_token(key)
-		return FirebaseData()
+		token = user["idToken"]
 
-	sys.exit(1)
+		database = firebase.database()
+		path = f"garden/{login['serial']}"
+
+		# Check if we have permission to access the part of the database reserved for this garden
+		try: database.child(path).get(token)
+		except: sys.exit(f"Failed to load database path {path}")
+
+		return FirebaseDatabase(token, database, path, callbacks)
