@@ -1,8 +1,15 @@
-from pyrebase4 import initialize_app
-from .config import config
 
+import pathlib
 import requests
 import sys
+
+from pyrebase4 import initialize_app
+
+# https://stackoverflow.com/questions/67631/how-can-i-import-a-module-dynamically-given-the-full-path
+from importlib.machinery import SourceFileLoader
+
+config_file = pathlib.Path.home() / "green-garden" / "config.py"
+config_module = SourceFileLoader("config", str(config_file)).load_module()
 
 class FirebaseDatabase:
 	def __init__(self, token, database, path, callbacks):
@@ -25,7 +32,7 @@ class FirebaseDatabase:
 		[s.close() for s in self.streams]
 
 def init_database(login, callbacks={}):
-	firebase = initialize_app(config)
+	firebase = initialize_app(config_module.config)
 	auth = firebase.auth()
 
 	# TODO: Save token and refresh
