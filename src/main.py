@@ -24,7 +24,7 @@ except:
 print("Green Garden IoT Controller started")
 print(f"Python: {sys.version_info.major}.{sys.version_info.minor}")
 print(f"System: {device_type} {system}")
-print(f"Serial number: '{login}'")
+print(f"Serial number: '{login['serial']}'")
 print("")
 
 print("Authenticating with Firebase...")
@@ -40,6 +40,8 @@ if is_raspberry_pi:
 
 try:
 	while True:
+		database.sync()
+
 		if is_raspberry_pi:
 			if database.test_led_on == 1:
 				bus.write_byte(addr, 0x1) # switch it on
