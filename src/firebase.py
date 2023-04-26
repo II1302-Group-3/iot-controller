@@ -14,20 +14,25 @@ config_module = SourceFileLoader("config", str(config_file)).load_module()
 firebase = initialize_app(config_module.config)
 auth = firebase.auth()
 
+# We can't watch all values because then we will get a notification when we upload sensor values
+watched_keys = ["test_led_on", "target_moisture", "target_light_level"]
+# These are keys that the IoT controller uploads to the database
+synced_keys = []
+
+token_file = pathlib.Path.home() / "green-garden" / "token.txt"
+
 class FirebaseDatabase:
 	def __init__(self, user, database, path, callbacks):
 		self.test_led_on = database.child(f"{path}/test_led_on").get(user["idToken"]).val() or 0
 		self.target_moisture = database.child(f"{path}/target_moisture").get(user["idToken"]).val() or 50
 		self.target_light_level = database.child(f"{path}/target_light_level").get(user["idToken"]).val() or 50
 
-		# We can't watch all values because then we will get a notification when we upload sensor values
-		watched_keys = ["test_led_on", "target_moisture", "target_light_level"]
 		self.streams = [database.child(f"{path}/{k}").stream(lambda m: self.stream_handler(m, callbacks.get(k, None)), user["idToken"], k) for k in watched_keys]
 
-		# The user token expires after an hour so we wait 50 minutes before refreshing
+		# The user token expires after an hour so we wait 45 minutes before refreshing
 		self.user = user
-		self.next_token_refresh = time() + 50 * 60
-		print(f"Refreshing token in 50 minutes")
+		self.next_token_refresh = time() + 45 * 60
+		print(f"Refreshing token in 45 minutes")
 
 	def stream_handler(self, message, callback):
 		# This means the key no longer exists
@@ -39,6 +44,8 @@ class FirebaseDatabase:
 		# For example: If stream_id is "test_led_on", message["data"] is 1 and self.test_led_on is 1, we should ignore this message
 		if getattr(self, message["stream_id"]) == message["data"]:
 			return
+		else:
+			setattr(self, message["stream_id"], message["data"])
 
 		if callback:
 			callback(message["data"])
@@ -52,21 +59,52 @@ class FirebaseDatabase:
 	def stop(self):
 		[s.close() for s in self.streams]
 
+def request_token_from_file():
+	with open(token_file, "r") as file:
+		token = file.readline().strip()
+		expiry_time = int(file.readline().strip())
+
+		if time() >= expiry_time:
+			raise Exception("Saved login token expired")
+
+		print(f"Got login token from token.txt that expires in {expiry_time - int(time())} seconds")
+
+		return token
+
+def request_token_from_firebase(login):
+	text = requests.get("https://europe-west1-greengarden-iot.cloudfunctions.net/requestNewToken", params=login).text
+
+	if text == "missing_parameter": sys.exit("Missing parameter error")
+	elif text == "invalid_serial": sys.exit("Invalid serial")
+	elif text == "wrong_key": sys.exit("Wrong key for this serial number")
+
+	token = text.split(':')[0]
+	time_left = int(text.split(':')[1])
+
+	print(f"Got {text.split(':')[2]} login token from Firebase that expires in {time_left} seconds")
+
+	return (token, time_left)
+
 def init_database(login, callbacks={}):
-	# TODO: Save token and refresh
-	key = requests.get("https://europe-west1-greengarden-iot.cloudfunctions.net/requestNewToken", params=login).text
+	try:
+		print("(1) Trying to sign in with saved login token")
+		# First, try to use a token we saved to token.txt
+		user = auth.sign_in_with_custom_token(request_token_from_file())
+	except:
+		print("(2) Trying to sign in by requesting login token from Firebase")
 
-	if key == "missing_parameter": sys.exit("Missing parameter error")
-	elif key == "invalid_serial": sys.exit("Invalid serial")
-	elif key == "wrong_key": sys.exit("Wrong key for this serial number")
-	else:
-		user = auth.sign_in_with_custom_token(key)
+		(token, time_left) = request_token_from_firebase(login)
+		user = auth.sign_in_with_custom_token(token)
 
-		database = firebase.database()
-		path = f"garden/{login['serial']}"
+		# Save the token we got from Firebase to token.txt
+		with open(token_file, "w") as file:
+			file.write(f"{token}\n{int(time() + time_left)}")
 
-		# Check if we have permission to access the part of the database reserved for this garden
-		try: database.child(path).get(user["idToken"])
-		except: sys.exit(f"Failed to load database path {path}")
+	database = firebase.database()
+	path = f"garden/{login['serial']}"
 
-		return FirebaseDatabase(user, database, path, callbacks)
+	# Check if we have permission to access the part of the database reserved for this garden
+	try: database.child(path).get(user["idToken"])
+	except: sys.exit(f"Failed to load database path {path}")
+
+	return FirebaseDatabase(user, database, path, callbacks)

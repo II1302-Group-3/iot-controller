@@ -20,6 +20,8 @@ def register_new_serial_number(serial):
 	params = { "serial": serial, "password": pwinput() }
 	key = requests.get("https://europe-west1-greengarden-iot.cloudfunctions.net/signSerialNumber", params=params).text
 
+	print("")
+
 	if key == "missing_parameter": sys.exit("Missing parameter error")
 	elif key == "wrong_password": sys.exit("Wrong password")
 	else:
@@ -34,14 +36,14 @@ def get_serial_and_key():
 
 	if args.new_serial:
 		new_serial = str(random.randint(0, 999999999999)).zfill(12)
-		print(f"Generated new serial number: {new_serial}\n")
+		print(f"Generated new serial number: {new_serial}")
 
 		return register_new_serial_number(new_serial)
 	elif args.set_serial != None:
 		args.set_serial = args.set_serial.strip()
 
 		if not args.set_serial.isdigit() or int(args.set_serial) < 0 or int(args.set_serial) > 999999999999:
-			print("Warning: Serial number should have 12 digits\n")
+			print("Warning: Serial number should have 12 digits")
 
 		return register_new_serial_number(args.set_serial)
 	else:

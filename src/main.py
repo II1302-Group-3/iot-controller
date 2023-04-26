@@ -27,12 +27,12 @@ print(f"System: {device_type} {system}")
 print(f"Serial number: '{login['serial']}'")
 print("")
 
-print("Authenticating with Firebase...")
+print("Authenticating with Firebase...\n")
 
 # Firebase listens on a background thread
 database = firebase.init_database(login)
 
-print("Done!")
+print("\nDone!")
 
 if is_raspberry_pi:
 	addr = 0x8 # bus address
