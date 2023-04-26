@@ -11,7 +11,9 @@ args_parser.add_argument("--new-serial", action="store_true")
 args_parser.add_argument("--set-serial", type=str)
 
 home_dir = pathlib.Path.home() / "green-garden"
+
 serial_file = home_dir / "serial.txt"
+token_file = home_dir / "token.txt"
 
 if not home_dir.exists():
 	home_dir.mkdir()
@@ -28,6 +30,9 @@ def register_new_serial_number(serial):
 		with open(serial_file, "w") as file:
 			file.write(f"{serial}\n")
 			file.write(f"{key}\n")
+
+		if token_file.exists():
+			token_file.unlink()
 
 		return { "serial": serial, "key": key }
 
