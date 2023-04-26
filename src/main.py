@@ -41,9 +41,9 @@ if is_raspberry_pi:
 try:
 	while True:
 		if is_raspberry_pi:
-			if database.led_on == 1:
+			if database.test_led_on == 1:
 				bus.write_byte(addr, 0x1) # switch it on
-			elif database.led_on == 0:
+			elif database.test_led_on == 0:
 				bus.write_byte(addr, 0x0) # switch it off
 
 		time.sleep(1)
