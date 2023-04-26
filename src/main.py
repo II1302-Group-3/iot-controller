@@ -29,8 +29,11 @@ print("")
 
 print("Authenticating with Firebase...\n")
 
-# Firebase listens on a background thread
-database = firebase.init_database(login)
+callbacks = {
+	"target_moisture": lambda m: print(f"New target moisture: {m}"),
+	"target_light_level": lambda l: print(f"New target light level: {l}")
+}
+database = firebase.init_database(login, callbacks)
 
 print("\nDone!")
 
