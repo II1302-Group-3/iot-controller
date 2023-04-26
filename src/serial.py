@@ -47,7 +47,7 @@ def get_serial_and_key():
 
 		return register_new_serial_number(args.set_serial)
 	else:
-		if not serial_file.exists(): sys.exit("No serial number set for this garden")
+		if not serial_file.exists(): sys.exit("No serial number set for this garden (use --new-serial or --set-serial)")
 
 		with open(serial_file, "r") as file:
 			return { "serial": file.readline().strip(), "key": file.readline().strip() }
