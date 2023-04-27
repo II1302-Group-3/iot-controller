@@ -35,7 +35,7 @@ class FirebaseDatabase:
 		self.target_moisture = database.child(f"{path}/target_moisture").get(user["idToken"]).val() or 50
 		self.target_light_level = database.child(f"{path}/target_light_level").get(user["idToken"]).val() or 50
 
-		self.streams = [database.child(f"{path}/{k}").stream(lambda m: self.stream_handler(m, callbacks.get(k, None)), user["idToken"], k) for k in watched_keys]
+		self.streams = [database.child(f"{path}/{k}").stream(lambda m: self.stream_handler(m, callbacks), user["idToken"], k) for k in watched_keys]
 
 		# The user token expires after an hour so we wait 45 minutes before refreshing
 		self.next_token_refresh = time() + 45 * 60
@@ -43,21 +43,26 @@ class FirebaseDatabase:
 
 		self.next_sync_time = time()
 
-	def stream_handler(self, message, callback):
+	def stream_handler(self, message, callbacks):
+		key = message["stream_id"]
+		value = message["data"]
+
 		# This means the key no longer exists
-		if message["data"] is None:
+		if value is None:
 			return
 
 		# This checks if this object (self) has an attribute with the same name as the stream_id
 		# If this is true, it checks if they are equal, and if they are we can ignore the message
 		# For example: If stream_id is "test_led_on", message["data"] is 1 and self.test_led_on is 1, we should ignore this message
-		if getattr(self, message["stream_id"]) == message["data"]:
+		if getattr(self, key) == value:
 			return
 		else:
-			setattr(self, message["stream_id"], message["data"])
+			setattr(self, key, value)
+
+		callback = callbacks.get(key, None)
 
 		if callback:
-			callback(message["data"])
+			callback(value)
 
 	# Needs to be called regularly to sync data to Firebase
 	def sync(self):
