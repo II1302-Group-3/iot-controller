@@ -6,8 +6,8 @@ import sys
 from time import sleep
 from smbus2 import SMBus
 
-import serial
-login = serial.get_serial_and_key()
+import serialnumber
+login = serialnumber.get_serial_and_key()
 
 system = f"{platform.uname().system} {platform.uname().release}"
 
