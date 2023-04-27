@@ -54,10 +54,11 @@ class FirebaseDatabase:
 		# This checks if this object (self) has an attribute with the same name as the stream_id
 		# If this is true, it checks if they are equal, and if they are we can ignore the message
 		# For example: If stream_id is "test_led_on", message["data"] is 1 and self.test_led_on is 1, we should ignore this message
-		if getattr(self, key) == value:
-			return
-		else:
-			setattr(self, key, value)
+		#if getattr(self, key) == value:
+		#	return
+		# Code is commented out because we want to run callbacks on start
+
+		setattr(self, key, value)
 
 		callback = callbacks.get(key, None)
 
