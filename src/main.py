@@ -10,9 +10,8 @@ import serialnumber
 login = serialnumber.get_serial_and_key()
 
 import serial
-if __name__ == '__main__':
-	ser = serial.Serial('/dev/ttyACM0',57600, timeout=1)
-	ser.reset_input_buffer()
+ser = serial.Serial('/dev/ttyACM0',57600, timeout=1)
+ser.reset_input_buffer()
 
 system = f"{platform.uname().system} {platform.uname().release}"
 
@@ -35,12 +34,15 @@ print("")
 print("Authenticating with Firebase...\n")
 
 def moisture_test(m):
+	if not is_raspberry_pi:
+		return
+
 	m = int(m/4)
 	print(addr)
 	print(m)
 	bus.write_byte(addr,m)
 	print("test")
-	
+
 callbacks = {
 	"target_moisture": moisture_test,
 	"target_light_level": lambda l: print(f"New target light level: {l}")
