@@ -4,14 +4,6 @@ import platform
 import sys
 
 from time import sleep
-from smbus2 import SMBus
-
-import serialnumber
-login = serialnumber.get_serial_and_key()
-
-import serial
-ser = serial.Serial('/dev/ttyACM0',57600, timeout=1)
-ser.reset_input_buffer()
 
 system = f"{platform.uname().system} {platform.uname().release}"
 
@@ -24,6 +16,8 @@ except:
 	device_type = "Computer"
 	is_raspberry_pi = False
 
+import authentication
+login = authentication.get_serial_and_key()
 
 print("Green Garden IoT Controller started")
 print(f"Python: {sys.version_info.major}.{sys.version_info.minor}")
@@ -33,30 +27,20 @@ print("")
 
 print("Authenticating with Firebase...\n")
 
-def moisture_test(m):
-	if not is_raspberry_pi:
-		return
-
-	m = int(m/4)
-	print(addr)
-	print(m)
-	bus.write_byte(addr,m)
-	print("test")
-
-callbacks = {
-	"target_moisture": moisture_test,
-	"target_light_level": lambda l: print(f"New target light level: {l}")
-}
-database = firebase.init_database(login, callbacks)
-
-# Run callbacks on start
-moisture_test(database.target_moisture)
-
-print("\nDone!")
+callbacks = {}
 
 if is_raspberry_pi:
-	addr = 0x8 # bus address
-	bus = SMBus(1) # indicates /dev/i2c-1
+	from moisture import moisture_callback
+	from light import light_callback
+
+	callbacks = {
+		"target_moisture": moisture_callback,
+		"target_light_level": light_callback
+	}
+
+database = firebase.init_database(login, callbacks or {})
+
+print("\nDone!")
 
 try:
 	while True:
