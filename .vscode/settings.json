@@ -1,5 +1,4 @@
 {
-    "python.pythonPath": "/home/hannes/.local/share/virtualenvs/iot-controller-_0gkauNz/bin/python",
     "python.defaultInterpreterPath": "/home/hannes/.local/share/virtualenvs/iot-controller-_0gkauNz/bin/python",
     "python.languageServer": "Pylance",
     "python.analysis.extraPaths": [

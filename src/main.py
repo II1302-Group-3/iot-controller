@@ -2,47 +2,69 @@ import firebase
 
 import platform
 import sys
-import time
+
+from time import sleep
+from smbus2 import SMBus
+
+import serialnumber
+login = serialnumber.get_serial_and_key()
 
 import serial
-from smbus import SMBus
-current_serial = serial.get_serial_number()
+ser = serial.Serial('/dev/ttyACM0',57600, timeout=1)
+ser.reset_input_buffer()
 
-# TODO: Check if we are running on Raspberry Pi
 system = f"{platform.uname().system} {platform.uname().release}"
+
+try:
+	# https://raspberrypi.stackexchange.com/questions/5100/detect-that-a-python-program-is-running-on-the-pi
+	with open("/sys/firmware/devicetree/base/model", "r") as file:
+		device_type = file.readline().strip()
+		is_raspberry_pi = "Raspberry Pi" in device_type
+except:
+	device_type = "Computer"
+	is_raspberry_pi = False
+
 
 print("Green Garden IoT Controller started")
 print(f"Python: {sys.version_info.major}.{sys.version_info.minor}")
-print(f"System: {system}")
-print(f"Serial number: '{current_serial}'")
+print(f"System: {device_type} {system}")
+print(f"Serial number: '{login['serial']}'")
 print("")
 
-print("Authenticating with Firebase...")
+print("Authenticating with Firebase...\n")
 
-# Firebase listens on background threads
-db = firebase.init_database(
-	current_serial,
-	lambda l: print(f"Led state: {l}"),
-	lambda m: print(f"New target moisture: {m}"),
-	lambda l: print(f"New target light level: {l}")
-)
+def moisture_test(m):
+	if not is_raspberry_pi:
+		return
 
-print("Done!")
+	m = int(m/4)
+	print(addr)
+	print(m)
+	bus.write_byte(addr,m)
+	print("test")
 
-addr = 0x8 # bus address
-bus = SMBus(1) # indicates /dev/ic2-1
+callbacks = {
+	"target_moisture": moisture_test,
+	"target_light_level": lambda l: print(f"New target light level: {l}")
+}
+database = firebase.init_database(login, callbacks)
+
+# Run callbacks on start
+moisture_test(database.target_moisture)
+
+print("\nDone!")
+
+if is_raspberry_pi:
+	addr = 0x8 # bus address
+	bus = SMBus(1) # indicates /dev/i2c-1
 
 try:
 	while True:
-		if db.led_on == 1:
-			bus.write_byte(addr, 0x1) # switch it on
-		elif db.led_on == 0:
-			bus.write_byte(addr, 0x0) # switch it off
-
-		time.sleep(1)
+		database.sync()
+		sleep(1)
 except KeyboardInterrupt:
 	print("")
 	print("Exiting...")
 
-	db.stop()
+	database.stop()
 	sys.exit(0)

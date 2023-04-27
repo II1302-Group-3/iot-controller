@@ -1,10 +1,18 @@
 [[source]]
-url = "https://pypi.org/simple"
+url = "https://www.piwheels.org/simple"
 verify_ssl = true
-name = "pypi"
+name = "piwheels"
 
 [packages]
-firebase-admin = "*"
+requests = "*"
+pwinput = "*"
+smbus2 = "*"
+pyserial = "*"
+sseclient = "*"
+oauth2client = "*"
+gcloud = "*"
+python-jwt = "*"
+requests-toolbelt = "*"
 
 [dev-packages]
 
