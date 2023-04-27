@@ -9,6 +9,11 @@ from smbus2 import SMBus
 import serialnumber
 login = serialnumber.get_serial_and_key()
 
+import serial
+if __name__ == '__main__':
+	ser = serial.Serial('/dev/ttyACM0',57600, timeout=1)
+	ser.reset_input_buffer()
+
 system = f"{platform.uname().system} {platform.uname().release}"
 
 try:
@@ -29,11 +34,21 @@ print("")
 
 print("Authenticating with Firebase...\n")
 
+def moisture_test(m):
+	m = int(m/4)
+	print(addr)
+	print(m)
+	bus.write_byte(addr,m)
+	print("test")
+	
 callbacks = {
-	"target_moisture": lambda m: print(f"New target moisture: {m}"),
+	"target_moisture": moisture_test,
 	"target_light_level": lambda l: print(f"New target light level: {l}")
 }
 database = firebase.init_database(login, callbacks)
+
+# Run callbacks on start
+moisture_test(database.target_moisture)
 
 print("\nDone!")
 
@@ -44,13 +59,6 @@ if is_raspberry_pi:
 try:
 	while True:
 		database.sync()
-
-		if is_raspberry_pi:
-			if database.test_led_on == 1:
-				bus.write_byte(addr, 0x1) # switch it on
-			elif database.test_led_on == 0:
-				bus.write_byte(addr, 0x0) # switch it off
-
 		sleep(1)
 except KeyboardInterrupt:
 	print("")
