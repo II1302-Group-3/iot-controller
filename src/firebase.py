@@ -1,9 +1,10 @@
 import pathlib
 import requests
 import sys
+import threading
 
 from pyrebase4 import initialize_app
-from time import time
+from time import sleep, time
 
 # https://stackoverflow.com/questions/67631/how-can-i-import-a-module-dynamically-given-the-full-path
 from importlib.machinery import SourceFileLoader
@@ -19,10 +20,17 @@ watched_keys = ["test_led_on", "target_moisture", "target_light_level"]
 # These are keys that the IoT controller uploads to the database
 synced_keys = []
 
+# How many seconds should pass between syncing to Firebase
+sync_time = 10
+
 token_file = pathlib.Path.home() / "green-garden" / "token.txt"
 
 class FirebaseDatabase:
 	def __init__(self, user, database, path, callbacks):
+		self.user = user
+		self.database = database
+		self.path = path
+
 		self.test_led_on = database.child(f"{path}/test_led_on").get(user["idToken"]).val() or 0
 		self.target_moisture = database.child(f"{path}/target_moisture").get(user["idToken"]).val() or 50
 		self.target_light_level = database.child(f"{path}/target_light_level").get(user["idToken"]).val() or 50
@@ -30,9 +38,10 @@ class FirebaseDatabase:
 		self.streams = [database.child(f"{path}/{k}").stream(lambda m: self.stream_handler(m, callbacks.get(k, None)), user["idToken"], k) for k in watched_keys]
 
 		# The user token expires after an hour so we wait 45 minutes before refreshing
-		self.user = user
 		self.next_token_refresh = time() + 45 * 60
 		print(f"Refreshing token in 45 minutes")
+
+		self.next_sync_time = time()
 
 	def stream_handler(self, message, callback):
 		# This means the key no longer exists
@@ -55,6 +64,11 @@ class FirebaseDatabase:
 		if time() >= self.next_token_refresh:
 			self.user = auth.refresh(self.user["refreshToken"])
 			self.next_token_refresh = time() + 50 * 60
+
+		if time() >= self.next_sync_time:
+			# This can be used to determine if the Raspberry Pi has internet access
+			self.database.child(f"{self.path}/last_sync_time").set(int(time()))
+			self.next_sync_time = time() + 10
 
 	def stop(self):
 		[s.close() for s in self.streams]

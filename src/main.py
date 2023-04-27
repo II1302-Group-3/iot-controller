@@ -2,8 +2,8 @@ import firebase
 
 import platform
 import sys
-import time
 
+from time import sleep
 from smbus2 import SMBus
 
 import serial
@@ -51,7 +51,7 @@ try:
 			elif database.test_led_on == 0:
 				bus.write_byte(addr, 0x0) # switch it off
 
-		time.sleep(1)
+		sleep(1)
 except KeyboardInterrupt:
 	print("")
 	print("Exiting...")
