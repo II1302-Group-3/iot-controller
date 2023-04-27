@@ -6,7 +6,7 @@ A4 -> Pin 3 raspberry
 A5 -> Pin 5 raspberry
  
 
-arudinio pin 13 -> Cntrl relay
+arudinio pin 7 -> Cntrl relay
 5v breadboard -> relay
 gnd breadboard -> relay
 breadboard 5v -> relay common
