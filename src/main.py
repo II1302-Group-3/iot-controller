@@ -4,8 +4,10 @@ import platform
 import sys
 
 from time import sleep
+from termcolor import colored
 
 system = f"{platform.uname().system} {platform.uname().release}"
+python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
 
 try:
 	# https://raspberrypi.stackexchange.com/questions/5100/detect-that-a-python-program-is-running-on-the-pi
@@ -19,13 +21,18 @@ except:
 import authentication
 login = authentication.get_serial_and_key()
 
-print("Green Garden IoT Controller started")
-print(f"Python: {sys.version_info.major}.{sys.version_info.minor}")
+print(colored("Green Garden IoT Controller started", attrs=["bold"]))
+print(f"Python: {python_version}")
 print(f"System: {device_type} {system}")
 print(f"Serial number: '{login['serial']}'")
 print("")
 
-print("Authenticating with Firebase...\n")
+if python_version != "3.9":
+	print(colored(f"Warning: The Raspberry Pi uses Python 3.9 and you have {python_version}", "red", attrs=["bold"]))
+	print("")
+
+print("Authenticating with Firebase...")
+print("")
 
 callbacks = {}
 
@@ -40,7 +47,7 @@ if is_raspberry_pi:
 
 database = firebase.init_database(login, callbacks or {})
 
-print("\nDone!")
+print(colored("\nDone!", "green"))
 
 try:
 	while True:

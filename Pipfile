@@ -1,20 +1,12 @@
-[[source]]
-url = "https://www.piwheels.org/simple"
-verify_ssl = true
-name = "piwheels"
-
 [packages]
-requests = "*"
-pwinput = "*"
-smbus2 = "*"
-pyserial = "*"
-sseclient = "*"
-oauth2client = "*"
-gcloud = "*"
-python-jwt = "*"
-requests-toolbelt = "*"
+requests = "==2.29.0"
+pwinput = "==1.0.3"
+smbus2 = "==0.4.2"
+pyserial = "==3.5"
+pyrebase4 = "==4.6.0"
+termcolor = "==2.3.0"
 
 [dev-packages]
 
 [requires]
-python_version = "3.9"
+python_version = "3"
