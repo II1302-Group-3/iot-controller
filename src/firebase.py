@@ -1,6 +1,11 @@
 import pathlib
 import requests
 import sys
+import busio
+import adafruit_veml7700
+from datetime import datetime
+
+
 
 from pyrebaselite import initialize_app
 from time import sleep, time
@@ -21,6 +26,14 @@ synced_keys = []
 
 # How many seconds should pass between syncing to Firebase
 sync_time = 10
+
+I2C_SDA_PIN = 2
+I2C_SCL_PIN = 3
+
+light_threshold = 0 
+
+i2c = busio.I2C(I2C_SCL_PIN, I2C_SDA_PIN)
+veml7700 = adafruit_veml7700.VEML7700(i2c)
 
 token_file = pathlib.Path.home() / "green-garden" / "token.txt"
 
@@ -73,6 +86,8 @@ class FirebaseDatabase:
 		if time() >= self.next_sync_time:
 			# This can be used to determine if the Raspberry Pi has internet access
 			self.database.child(f"{self.path}/last_sync_time").set(int(time()))
+			self.database.child(f"{self.path}/light_level/{datetime.now()}").set(self.light_level)
+
 			self.next_sync_time = time() + 10
 
 	def stop(self):
