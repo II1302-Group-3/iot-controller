@@ -3,7 +3,7 @@ requests = "==2.29.0"
 pwinput = "==1.0.3"
 smbus2 = "==0.4.2"
 pyserial = "==3.5"
-pyrebase4 = "==4.6.0"
+pyrebase4lite = "==0.1.1"
 termcolor = "==2.3.0"
 
 [dev-packages]
