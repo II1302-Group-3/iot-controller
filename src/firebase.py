@@ -1,9 +1,8 @@
 import pathlib
 import requests
 import sys
-import threading
 
-from pyrebase4 import initialize_app
+from pyrebaselite import initialize_app
 from time import sleep, time
 
 # https://stackoverflow.com/questions/67631/how-can-i-import-a-module-dynamically-given-the-full-path
