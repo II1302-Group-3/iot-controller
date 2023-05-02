@@ -25,7 +25,8 @@ def light_callback(light_thres):
 def run_light_automation(): 
 	global one_time
 
-	light_level = veml7700.light # Measure the light
+	global light_level # Measure the light
+	light_level = veml7700.light
 	print("Light value: ",light_level)
 
 	if light_threshold < light_level:

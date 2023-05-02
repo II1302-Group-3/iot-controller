@@ -73,7 +73,8 @@ try:
 		if not(detect_plant):
 			if one_shot == 0:
 				moisture_callback(database.target_moisture)
-				light_callback(database.target_light_level)
+				#light_callback(database.target_light_level)
+				print(database.light_level)
 			database.sync()
 			light.run_light_automation()
 			one_shot = 1
