@@ -4,10 +4,11 @@ Controller for a smart garden written in Python
 
 ## How to use
 
-1. Install pip (Raspbian: `sudo apt install python3-pip`, Arch: `sudo pacman -S python-pip`)
-2. Install pipenv (Raspbian: `sudo apt install pipenv`, Arch: `sudo pacman -S python-pipenv`)
-3. Run `pipenv sync`
-4. Run the program with `pipenv run python src/main.py`
+1. Install pip (Raspberry Pi: `sudo apt install python3-pip`, Arch Linux: `sudo pacman -S python-pip`)
+2. Install pipenv (Raspberry Pi: `sudo apt install pipenv`, Arch Linux: `sudo pacman -S python-pipenv`)
+3. If you are testing on the Raspberry Pi, run `export PIPENV_PYPI_MIRROR=https://www.piwheels.org/simple`
+4. Run `pipenv install --skip-lock`
+5. Run the program with `pipenv run python src/main.py`
 
 ## Firebase API key
 
