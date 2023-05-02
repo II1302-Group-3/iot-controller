@@ -1,6 +1,6 @@
-import serial
-ser = serial.Serial('/dev/ttyACM0',57600, timeout=1)
-ser.reset_input_buffer()
+#import serial
+#ser = serial.Serial('/dev/ttyACM0',57600, timeout=1)
+#ser.reset_input_buffer()
 
 from smbus2 import SMBus
 
