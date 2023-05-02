@@ -78,6 +78,7 @@ try:
 			database.sync()
 			light.run_light_automation()
 			one_shot = 1
+			print(database.light_level)
 		else:
 			if one_shot == 1:
 				light.turn_lights_off()
