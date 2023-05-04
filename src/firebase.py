@@ -3,9 +3,9 @@ import requests
 import sys
 import busio
 import adafruit_veml7700
-from datetime import date
+from datetime import date, datetime
 import light
-
+import pytz
 
 
 from pyrebaselite import initialize_app
@@ -80,10 +80,11 @@ class FirebaseDatabase:
 			callback(value)
 		
 	def light_statistics(self):
-		current_stat = self.database.child(f"{self.path}/light_level{date.today()}").get(self.user["idToken"]).val() or 0
-		current_stat += light.light_level 
-		self.database.child(f"{self.path}/light_level/{date.today()}").set(self.light_level)
-		print(current_stat)
+		local_tz = pytz.timezone('Etc/GMT-2')
+		now = datetime.now(local_tz)
+		hour_str = now.strftime("%H")
+		self.database.child(f"{self.path}/light_level/{date.today()}/{hour_str}").push(self.light_level)
+		datetime.time()
 
 	# Needs to be called regularly to sync data to Firebase
 	def sync(self):
@@ -94,10 +95,9 @@ class FirebaseDatabase:
 		if time() >= self.next_sync_time:
 			# This can be used to determine if the Raspberry Pi has internet access
 			self.database.child(f"{self.path}/last_sync_time").set(int(time()))
-			self.database.child(f"{self.path}/light_level/{date.today()}").set(self.light_level)
 			self.light_statistics()
 
-			self.next_sync_time = time() + 10
+			self.next_sync_time = time() + 60
 
 	def stop(self):
 		[s.close() for s in self.streams]
