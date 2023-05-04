@@ -3,7 +3,7 @@ import requests
 import sys
 import busio
 import adafruit_veml7700
-from datetime import datetime
+from datetime import date
 import light
 
 
@@ -78,6 +78,11 @@ class FirebaseDatabase:
 
 		if callback:
 			callback(value)
+		
+	def light_statistics(self):
+		current_stat = self.database.child(f"{self.path}/light_level{date.today()}").get(self.user["idToken"]).val() or 0
+		current_stat += light.light_level 
+		self.database.child(f"{self.path}/light_level/{date.today()}").set(self.light_level)
 
 	# Needs to be called regularly to sync data to Firebase
 	def sync(self):
@@ -88,12 +93,14 @@ class FirebaseDatabase:
 		if time() >= self.next_sync_time:
 			# This can be used to determine if the Raspberry Pi has internet access
 			self.database.child(f"{self.path}/last_sync_time").set(int(time()))
-			self.database.child(f"{self.path}/light_level/{datetime.now()}").set(self.light_level)
+			self.database.child(f"{self.path}/light_level/{date.today()}").set(self.light_level)
+			self.light_statistics()
 
 			self.next_sync_time = time() + 10
 
 	def stop(self):
 		[s.close() for s in self.streams]
+
 
 def request_token_from_file():
 	with open(token_file, "r") as file:
