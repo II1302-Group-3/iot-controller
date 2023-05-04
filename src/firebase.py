@@ -83,6 +83,7 @@ class FirebaseDatabase:
 		current_stat = self.database.child(f"{self.path}/light_level{date.today()}").get(self.user["idToken"]).val() or 0
 		current_stat += light.light_level 
 		self.database.child(f"{self.path}/light_level/{date.today()}").set(self.light_level)
+		print(current_stat)
 
 	# Needs to be called regularly to sync data to Firebase
 	def sync(self):
