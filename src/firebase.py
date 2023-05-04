@@ -40,6 +40,7 @@ token_file = pathlib.Path.home() / "green-garden" / "token.txt"
 
 class FirebaseDatabase:
 	def __init__(self, user, database, path, callbacks):
+		self.light_level = 0
 		self.user = user
 		self.database = database
 		self.path = path
@@ -87,7 +88,7 @@ class FirebaseDatabase:
 		if time() >= self.next_sync_time:
 			# This can be used to determine if the Raspberry Pi has internet access
 			self.database.child(f"{self.path}/last_sync_time").set(int(time()))
-			self.database.child(f"{self.path}/light_level/{datetime.now()}").set(light.light_level)
+			self.database.child(f"{self.path}/light_level/{datetime.now()}").set(self.light_level)
 
 			self.next_sync_time = time() + 10
 
