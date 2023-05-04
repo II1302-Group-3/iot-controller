@@ -4,6 +4,7 @@ import sys
 import busio
 import adafruit_veml7700
 from datetime import datetime
+import light
 
 
 
@@ -86,7 +87,7 @@ class FirebaseDatabase:
 		if time() >= self.next_sync_time:
 			# This can be used to determine if the Raspberry Pi has internet access
 			self.database.child(f"{self.path}/last_sync_time").set(int(time()))
-			self.database.child(f"{self.path}/light_level/{datetime.now()}").set(self.light_level)
+			self.database.child(f"{self.path}/light_level/{datetime.now()}").set(light.light_level)
 
 			self.next_sync_time = time() + 10
 
