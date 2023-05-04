@@ -3,6 +3,16 @@ import time
 import struct
 
 
+#*************************************
+#Data over i2c is always sent 6bytes
+# at a time from the arduino
+# first 2 is temp
+# next 2 is humidity
+# last 2 is moisture
+#
+#*************************************
+
+
 bus = smbus.SMBus(1)
 
 address = 0x8
