@@ -67,13 +67,13 @@ try:
 	one_shot = 0
 
 	while True:
-		detect_plant = plant_detector.check_for_plant()
-		print("Plant detector: ", detect_plant)
+		#detect_plant = plant_detector.check_for_plant()
+		#print("Plant detector: ", detect_plant)
 		sleep(0.1)
-		if not(detect_plant):
-			if one_shot == 0:
-				moisture_callback(database.target_moisture)
-				light_callback(database.target_light_level)
+		#if not(detect_plant):
+		if one_shot == 0:
+			moisture_callback(database.target_moisture)
+			light_callback(database.target_light_level)
 			database.sync()
 			light.run_light_automation(database)
 			one_shot = 1
