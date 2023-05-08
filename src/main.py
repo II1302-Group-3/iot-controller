@@ -1,4 +1,3 @@
-
 import sys
 
 from termcolor import colored
@@ -42,7 +41,6 @@ try:
 
 		database.sync()
 		sleep(1)
-
 except KeyboardInterrupt:
 	print("\n")
 	print("Exiting...")
