@@ -1,5 +1,6 @@
 import sys
 
+from signal import signal, SIGINT
 from termcolor import colored
 from time import sleep
 
@@ -49,15 +50,10 @@ database = init_database(login, callbacks)
 
 print(colored("Done!\n", "green", attrs=["bold"]))
 
-try:
-	while True:
-		if is_raspberry_pi:
-			detect_plant()
-			run_light_automation()
+def stop(*_):
+	# Empty function
+	signal(SIGINT, lambda *_: {})
 
-		database.sync()
-		sleep(1)
-except KeyboardInterrupt:
 	print("\n")
 	print("Exiting...")
 
@@ -66,3 +62,13 @@ except KeyboardInterrupt:
 
 	database.stop()
 	sys.exit(0)
+
+signal(SIGINT, stop)
+
+while True:
+	if is_raspberry_pi:
+		detect_plant()
+		run_light_automation()
+
+	database.sync()
+	sleep(1)
