@@ -24,3 +24,12 @@ Every Green Garden has a unique serial number that users can register in the app
 * To set the serial number: `pipenv run python src/main.py --set-serial (new serial number)`
 
 Generating a new serial number requires a secret password. Users can't change the serial number of their smart garden without the permission of the project group/product owner.
+
+ ## I2C Water Sensor Nomenclature:
+ Arduino receives the following:
+  * 1 - 1000  - (Moisture sensor threshold)
+  * 1500   -  (There is NOT enough water in the tank)
+  * 2500   - (There is enough water in the tank)
+
+
+
