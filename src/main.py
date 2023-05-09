@@ -28,13 +28,13 @@ login = authentication.get_serial_and_key()
 from pi import *
 
 print(colored("Green Garden IoT Controller started", attrs=["bold"]))
-print(f"Python: {python_version}")
-print(f"System: {device_type} {system}")
-print(f"Serial number: {login['serial']}")
+print(colored("Python:", attrs=["bold"]), python_version)
+print(colored("System:", attrs=["bold"]), device_type, system)
+print(colored("Serial number:", attrs=["bold"]), login["serial"])
 print("")
 
 if python_version != "3.9":
-	print(colored(f"Warning: The Raspberry Pi uses Python 3.9 and you have {python_version}", "red", attrs=["bold"]))
+	print(colored(f"Warning: The Raspberry Pi uses Python 3.9 and you have {python_version}", "red"))
 	print("")
 
 if is_raspberry_pi:
@@ -47,8 +47,8 @@ callbacks = {
 	"target_light_level": light_callback
 } if is_raspberry_pi else {}
 
-from firebase import init_database
-database = init_database(login, callbacks)
+from firebase import FirebaseDatabase
+database = FirebaseDatabase(login, callbacks)
 
 print(colored("Done!\n", "green", attrs=["bold"]))
 
