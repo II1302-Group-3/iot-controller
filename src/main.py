@@ -37,20 +37,14 @@ print(colored("Done!\n", "green", attrs=["bold"]))
 try:
 	while True:
 		if is_raspberry_pi:
-			if one_shot == 0:
-				detect_plant()
-				run_light_automation()
-				water_sensor.set_water_sensor_arduino()
-				sensor_data.request_sensor_data()
-				one_shot = 1
-				#print("WATER LEVEL")
-				#print(water_sensor.water_level)
-				#print("SGJKLÖSGGJK")
-			else:
-				if one_shot == 1:
-					light.turn_lights_off()
-					arduino_rst.restart_arduino()
-					one_shot = 0
+			detect_plant()
+			run_light_automation(database)
+			water_sensor.set_water_sensor_arduino()
+			sensor_data.request_sensor_data()
+			#print("WATER LEVEL")
+			#print(water_sensor.water_level)
+			#print("SGJKLÖSGGJK")
+	
 		
 
 		database.sync()
