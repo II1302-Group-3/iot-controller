@@ -79,12 +79,16 @@ class FirebaseDatabase:
 		if callback:
 			callback(value)
 		
-	def light_statistics(self):
+	def statistics(self):
 		local_tz = pytz.timezone('Etc/GMT-2')
 		now = datetime.now(local_tz)
 		min_now = now.strftime("%M")[:-1]
 		hour_str = now.strftime("%-H")
 		self.database.child(f"{self.path}/light_level/{date.today()}/{hour_str}/{min_now}").set(light.light_level)
+		self.database.child(f"{self.path}/temperature_level/{date.today()}/{hour_str}/{min_now}").set(light.light_level)
+		self.database.child(f"{self.path}/humidity_level/{date.today()}/{hour_str}/{min_now}").set(light.light_level)
+		self.database.child(f"{self.path}/moisture_level/{date.today()}/{hour_str}/{min_now}").set(light.light_level)
+		
 
 
 	# Needs to be called regularly to sync data to Firebase
@@ -96,7 +100,7 @@ class FirebaseDatabase:
 		if time() >= self.next_sync_time:
 			# This can be used to determine if the Raspberry Pi has internet access
 			self.database.child(f"{self.path}/last_sync_time").set(int(time()))
-			self.light_statistics()
+			self.statistics()
 
 			self.next_sync_time = time() + 600
 
