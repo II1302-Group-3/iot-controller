@@ -85,7 +85,6 @@ class FirebaseDatabase:
 		min_now = now.strftime("%M")[:-1]
 		hour_str = now.strftime("%-H")
 		self.database.child(f"{self.path}/light_level/{date.today()}/{hour_str}/{min_now}").push(self.light_level)
-		datetime.time()
 
 
 	# Needs to be called regularly to sync data to Firebase
