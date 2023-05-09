@@ -4,9 +4,11 @@ import time
 import serial
 from smbus2 import SMBus
 
-if __name__ == '__main__':
-	ser = serial.Serial('/dev/ttyACM0',57600, timeout=1)
-	ser.reset_input_buffer()
+#Removed USB
+#if __name__ == '__main__':
+#	ser = serial.Serial('/dev/ttyACM0',57600, timeout=1)
+#	ser.reset_input_buffer()
+
 # TODO: Check if we are running on Raspberry Pi
 
 print("Test started")
@@ -20,13 +22,8 @@ print("Enter moisture threshold value")
 try:
 	while True:
 		moisture_threshold = int(input(">>>>  "))
-		moisture_threshold = int(moisture_threshold/4)
-		bus.write_byte(addr,moisture_threshold)
+		bus.write_word_data(addr,0x00, moisture_threshold)
 		time.sleep(3)
-		while ser.in_waiting > 0:
-			line = ser.readline().decode('utf-8').rstrip()
-			print(line)
-		time.sleep(1)
 except KeyboardInterrupt:
 	print("")
 	print("Exiting...")
