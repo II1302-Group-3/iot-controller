@@ -41,15 +41,15 @@ class FirebaseDatabase:
 		self.next_sync_time = time()
 		self.syncing = True
 
-		self.sync_thread = Thread(target=self.sync_thread, daemon=True)
-		self.sync_thread.start()
+		self.current_sync_thread = Thread(target=self.sync_thread, daemon=True)
+		self.current_sync_thread.start()
 
 	def disconnected_handler(self):
 		self.syncing = False
 		tries = 0
 
 		while tries < 50:
-			if self.sync_thread.is_alive():
+			if self.current_sync_thread.is_alive():
 				sleep(0.1)
 				tries += 1
 			else:
