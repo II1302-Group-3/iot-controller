@@ -1,6 +1,8 @@
 import RPi.GPIO as GPIO
 from time import sleep
 from smbus2 import SMBus
+from i2c_arduino_init import address, bus
+
 
 
 
@@ -29,10 +31,10 @@ def set_water_sensor_arduino():
         # State has changed
         if not current_state:
             # There is water
-            bus.write_word_data(addr, 0x00, 2500)
+            bus.write_word_data(address, 0x00, 2500)
         else:
             # Not enough water, please refill
-            bus.write_word_data(addr, 0x00, 1500)
+            bus.write_word_data(address, 0x00, 1500)
         time.sleep(3)
 
     previous_state = current_state
