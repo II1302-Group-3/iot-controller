@@ -4,18 +4,13 @@
 
 from smbus2 import SMBus
 from time import sleep
+import i2c_arduino_init
+#address = None # bus address
+#bus = None
 
-addr = 0x8 # bus address
-bus = None
-
-def moisture_init():
-	global bus
-
-	bus = SMBus(1) # indicates /dev/i2c-1
-	sleep(1)
 
 # Called when the moisture changes in Firebase
 def moisture_callback(m):
-	m = int(m/4)
+	sleep(1)
 	print(f"Sending moisture to Arduino: {m}")
-	bus.write_byte(addr,m)
+	i2c_arduino_init.bus.write_word_data(i2c_arduino_init.address,0x00,m)
