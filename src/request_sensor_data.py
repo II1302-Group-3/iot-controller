@@ -14,9 +14,9 @@ import struct
 
 from i2c_arduino_init import bus, address
 
-temp = None
-humidity = None
-moisture = None
+global temp
+global humidity 
+global moisture 
 
 
 def request_sensor_data()
