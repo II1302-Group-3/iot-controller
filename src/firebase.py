@@ -3,8 +3,9 @@ import requests
 import sys
 import busio
 import adafruit_veml7700
-from datetime import datetime
-
+from datetime import date, datetime
+import light
+import pytz
 
 
 from pyrebaselite import initialize_app
@@ -39,6 +40,7 @@ token_file = pathlib.Path.home() / "green-garden" / "token.txt"
 
 class FirebaseDatabase:
 	def __init__(self, user, database, path, callbacks):
+		self.light_level = 0
 		self.user = user
 		self.database = database
 		self.path = path
@@ -76,6 +78,14 @@ class FirebaseDatabase:
 
 		if callback:
 			callback(value)
+		
+	def light_statistics(self):
+		local_tz = pytz.timezone('Etc/GMT-2')
+		now = datetime.now(local_tz)
+		min_now = now.strftime("%M")[:-1]
+		hour_str = now.strftime("%-H")
+		self.database.child(f"{self.path}/light_level/{date.today()}/{hour_str}/{min_now}").set(self.light_level)
+
 
 	# Needs to be called regularly to sync data to Firebase
 	def sync(self):
@@ -86,12 +96,13 @@ class FirebaseDatabase:
 		if time() >= self.next_sync_time:
 			# This can be used to determine if the Raspberry Pi has internet access
 			self.database.child(f"{self.path}/last_sync_time").set(int(time()))
-			self.database.child(f"{self.path}/light_level/{datetime.now()}").set(self.light_level)
+			self.light_statistics()
 
-			self.next_sync_time = time() + 10
+			self.next_sync_time = time() + 60
 
 	def stop(self):
 		[s.close() for s in self.streams]
+
 
 def request_token_from_file():
 	with open(token_file, "r") as file:
