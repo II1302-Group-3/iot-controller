@@ -4,14 +4,14 @@ from smbus2 import SMBus
 
 
 
-addr = None # bus address
-bus = None # indicates /dev/i2c-1
+#addr = None # bus address
+#bus = None # indicates /dev/i2c-1
 previos_state = None
 
 
 def water_sensor_GPIO_init():
-	addr = 0x8 # bus address
-	bus = SMBus(1) # indicates /dev/i2c-1
+	#addr = 0x8 # bus address
+	#bus = SMBus(1) # indicates /dev/i2c-1
 	previos_state = None
 	GPIO.setwarnings(False)
 	GPIO.setmode(GPIO.BCM)
