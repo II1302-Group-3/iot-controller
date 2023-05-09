@@ -24,20 +24,20 @@ if is_raspberry_pi:
 
 	# Starts all functions that only work on the Raspberry Pi
 	def init_raspberry_functions():
-		print(colored("Restarting Arduino...",attrs=["bold"]))
+		print(colored("Restarting Arduino...", attrs=["bold"]))
 		arduino_rst_pin_init()
 		restart_arduino()
 		print(colored("Done!\n", "green", attrs=["bold"]))
 
-		print(colored("Initializing the moisture sensor...",attrs=["bold"]))
+		print(colored("Initializing the moisture sensor...", attrs=["bold"]))
 		moisture_init()
 		print(colored("Done!\n", "green", attrs=["bold"]))
 
-		print(colored("Initializing the light sensor...",attrs=["bold"]))
+		print(colored("Initializing the light sensor...", attrs=["bold"]))
 		light_init()
 		print(colored("Done!\n", "green", attrs=["bold"]))
 
-		print(colored("Initializing the plant detector...",attrs=["bold"]))
+		print(colored("Initializing the plant detector...", attrs=["bold"]))
 		plant_detector_init()
 		print(colored("Done!\n", "green", attrs=["bold"]))
 

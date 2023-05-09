@@ -1,6 +1,8 @@
 import os
 from time import sleep
+
 from arduino_rst import restart_arduino
+from light import toggle_lights
 
 one_shot = 0
 
