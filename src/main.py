@@ -38,7 +38,13 @@ try:
 		if is_raspberry_pi:
 			detect_plant()
 			run_light_automation()
-			set_water_sensor_arduino()
+			water_sensor.set_water_sensor_arduino()
+			sensor_data.request_sensor_data()
+			#print("WATER LEVEL")
+			#print(water_sensor.water_level)
+			#print("SGJKLÖSGGJK")
+			
+		
 
 		database.sync()
 		sleep(1)
