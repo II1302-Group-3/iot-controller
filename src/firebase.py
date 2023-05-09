@@ -5,6 +5,7 @@ import busio
 import adafruit_veml7700
 from datetime import date, datetime
 import light
+import sensor_data
 import pytz
 
 
@@ -85,9 +86,9 @@ class FirebaseDatabase:
 		min_now = now.strftime("%M")[:-1]
 		hour_str = now.strftime("%-H")
 		self.database.child(f"{self.path}/light_level/{date.today()}/{hour_str}/{min_now}").set(light.light_level)
-		self.database.child(f"{self.path}/temperature_level/{date.today()}/{hour_str}/{min_now}").set(light.light_level)
-		self.database.child(f"{self.path}/humidity_level/{date.today()}/{hour_str}/{min_now}").set(light.light_level)
-		self.database.child(f"{self.path}/moisture_level/{date.today()}/{hour_str}/{min_now}").set(light.light_level)
+		self.database.child(f"{self.path}/temperature_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.temp)
+		self.database.child(f"{self.path}/humidity_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.humidity)
+		self.database.child(f"{self.path}/moisture_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.moisture)
 		
 
 
