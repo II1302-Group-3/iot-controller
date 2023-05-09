@@ -23,7 +23,7 @@ def light_callback(light_thres):
 	print(f"New target light level: {light_thres}")
 
 def run_light_automation(database): 
-	global one_time
+	global one_time, light_level
 	light_level = veml7700.light
 	database.light_level = light_level
 	print("Light value: ",light_level)
