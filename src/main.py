@@ -13,8 +13,10 @@ class GlobalTimeout(TimeoutSauce):
 	def __init__(self, *args, **kwargs):
 		if kwargs["connect"] is None:
 			kwargs["connect"] = 5
+
+		# The timeout needs to be high because otherwise stream_thread will lose connection
 		if kwargs["read"] is None:
-			kwargs["read"] = 5
+			kwargs["read"] = 45
 
 		super(GlobalTimeout, self).__init__(*args, **kwargs)
 
@@ -55,12 +57,13 @@ def stop(*_):
 	signal(SIGINT, lambda *_: {})
 
 	print("\n")
-	print("Exiting...")
+	print(colored("Exiting...", attrs=["bold"]))
+
+	database.stop()
 
 	if is_raspberry_pi:
 		cleanup_raspberry_functions()
 
-	database.stop()
 	sys.exit(0)
 
 signal(SIGINT, stop)
@@ -70,5 +73,4 @@ while True:
 		detect_plant()
 		run_light_automation()
 
-	database.sync()
 	sleep(1)

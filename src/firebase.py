@@ -1,9 +1,12 @@
 import pathlib
 import requests
-import sys
+
+from sys import exit
+from threading import Thread
+from time import sleep, time
 
 from pyrebaselite import initialize_app
-from time import sleep, time
+from termcolor import colored
 
 # https://stackoverflow.com/questions/67631/how-can-i-import-a-module-dynamically-given-the-full-path
 from importlib.machinery import SourceFileLoader
@@ -15,9 +18,7 @@ firebase = initialize_app(config_module.config)
 auth = firebase.auth()
 
 # We can't watch all values because then we will get a notification when we upload sensor values
-watched_keys = ["test_led_on", "target_moisture", "target_light_level"]
-# These are keys that the IoT controller uploads to the database
-synced_keys = []
+watched_keys = ["target_moisture", "target_light_level"]
 
 # How many seconds should pass between syncing to Firebase
 sync_time = 10
@@ -30,19 +31,24 @@ class FirebaseDatabase:
 		self.database = database
 		self.path = path
 
-		self.test_led_on = database.child(f"{path}/test_led_on").get(user["idToken"]).val() or 0
 		self.target_moisture = database.child(f"{path}/target_moisture").get(user["idToken"]).val() or 50
 		self.target_light_level = database.child(f"{path}/target_light_level").get(user["idToken"]).val() or 50
 
-		self.streams = [database.child(f"{path}/{k}").stream(lambda m: self.stream_handler(m, callbacks), user["idToken"], k) for k in watched_keys]
+		threads = [Thread(target=self.stream_thread, args=(k, callbacks.get(k, None)), daemon=True) for k in watched_keys]
+		for t in threads: t.start()
 
 		# The user token expires after an hour so we wait 45 minutes before refreshing
 		self.next_token_refresh = time() + 45 * 60
 		print(f"Refreshing token in 45 minutes")
 
+		# Sync immediately
 		self.next_sync_time = time()
+		self.stop_sync = False
 
-	def stream_handler(self, message, callbacks):
+		self.sync_thread = Thread(target=self.sync_thread, daemon=True)
+		self.sync_thread.start()
+
+	def stream_handler(self, message, callback):
 		key = message["stream_id"]
 		value = message["data"]
 
@@ -50,33 +56,46 @@ class FirebaseDatabase:
 		if value is None:
 			return
 
-		# This checks if this object (self) has an attribute with the same name as the stream_id
-		# If this is true, it checks if they are equal, and if they are we can ignore the message
-		# For example: If stream_id is "test_led_on", message["data"] is 1 and self.test_led_on is 1, we should ignore this message
-		#if getattr(self, key) == value:
-		#	return
-		# Code is commented out because we want to run callbacks on start
-
+		print(f"{key}={value}")
 		setattr(self, key, value)
-
-		callback = callbacks.get(key, None)
 
 		if callback:
 			callback(value)
 
-	# Needs to be called regularly to sync data to Firebase
-	def sync(self):
-		if time() >= self.next_token_refresh:
-			self.user = auth.refresh(self.user["refreshToken"])
-			self.next_token_refresh = time() + 50 * 60
+	def stream_thread(self, key, callback):
+		try:
+			self.database.child(f"{self.path}/{key}").stream(lambda m: self.stream_handler(m, callback), self.user["idToken"], key, False)
+		except:
+			print(f"Stream {key} stopped")
 
-		if time() >= self.next_sync_time:
-			# This can be used to determine if the Raspberry Pi has internet access
-			self.database.child(f"{self.path}/last_sync_time").set(int(time()))
-			self.next_sync_time = time() + 10
+	def sync_thread(self):
+		while not self.stop_sync:
+			try:
+				if time() >= self.next_token_refresh:
+					self.user = auth.refresh(self.user["refreshToken"])
+					self.next_token_refresh = time() + 50 * 60
+
+				if time() >= self.next_sync_time:
+					# This can be used to determine if the Raspberry Pi has internet access
+					self.database.child(f"{self.path}/last_sync_time").set(int(time()))
+					self.next_sync_time = time() + 10
+			except:
+				print("Could not sync, timed out")
+
+			sleep(1)
 
 	def stop(self):
-		[s.close() for s in self.streams]
+		self.stop_sync = True
+		tries = 0
+
+		while tries < 50:
+			if not self.sync_thread.is_alive():
+				return
+
+			sleep(0.1)
+			tries += 1
+
+		print(colored("Sync thread did not shut down in 5 seconds", "red", attrs=["bold"]))
 
 def request_token_from_file():
 	with open(token_file, "r") as file:
@@ -93,9 +112,9 @@ def request_token_from_file():
 def request_token_from_firebase(login):
 	text = requests.get("https://europe-west1-greengarden-iot.cloudfunctions.net/requestNewToken", params=login).text
 
-	if text == "missing_parameter": sys.exit("Missing parameter error")
-	elif text == "invalid_serial": sys.exit("Invalid serial")
-	elif text == "wrong_key": sys.exit("Wrong key for this serial number")
+	if text == "missing_parameter": exit("Missing parameter error")
+	elif text == "invalid_serial": exit("Invalid serial")
+	elif text == "wrong_key": exit("Wrong key for this serial number")
 
 	token = text.split(':')[0]
 	time_left = int(text.split(':')[1])
@@ -124,6 +143,6 @@ def init_database(login, callbacks={}):
 
 	# Check if we have permission to access the part of the database reserved for this garden
 	try: database.child(path).get(user["idToken"])
-	except: sys.exit(f"Failed to load database path {path}")
+	except: exit(f"Failed to load database path {path}")
 
 	return FirebaseDatabase(user, database, path, callbacks)
