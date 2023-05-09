@@ -5,7 +5,7 @@ from smbus2 import SMBus
 
 
 addr = None # bus address
-bus = None) # indicates /dev/i2c-1
+bus = None # indicates /dev/i2c-1
 previos_state = None
 
 
@@ -21,14 +21,6 @@ def water_sensor_GPIO_init():
 
 def set_water_sensor_arduino():
 	sleep(1)
-	#if not(GPIO.input(21)):
-		# There is water
-	#	bus.write_word_data(addr,0x00, 2500)
-	#	time.sleep(3)
-	#else:
- 		# Not enough water, please refill
-	#	bus.write_word_data(addr,0x00, 1500)	
-	#	time.sleep(3)
 	global previous_state  # Use the global variable for previous state
     sleep(1)
     current_state = GPIO.input(21)
@@ -45,7 +37,8 @@ def set_water_sensor_arduino():
 
     previous_state = current_state
 	
-	
+def arduino_water_sensor_cleanup():
+	os.system("sudo echo 21 >/sys/class/gpio/unexport")
 	
 	
 	
