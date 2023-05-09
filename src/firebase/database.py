@@ -69,7 +69,6 @@ class FirebaseDatabase:
 		if getattr(self, key) == value:
 			return
 
-		print(f"{key}={value}")
 		setattr(self, key, value)
 
 		if callback:

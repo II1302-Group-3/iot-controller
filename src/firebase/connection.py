@@ -50,8 +50,11 @@ class FirebaseConnection:
 		self.thread = Thread(target=self.connection_thread, args=[login], daemon=True)
 		self.thread.start()
 
+	def connected(self):
+		return self.user != None
+
 	def token(self):
-		return self.user["idToken"] if self.user else ""
+		return self.user["idToken"] if self.connected() else ""
 
 	# Called when database has lost connection
 	def disconnect(self):
@@ -70,7 +73,7 @@ class FirebaseConnection:
 					try:
 						(token, time_left) = request_token_from_file()
 					# Second, request from Firebase cloud function
-					except Exception as e:
+					except:
 						(token, time_left) = request_token_from_firebase(login)
 
 						# Save the token we got from Firebase to token.txt
@@ -83,11 +86,10 @@ class FirebaseConnection:
 					timer = Timer(45 * 60, lambda: self.events.put(FirebaseEvent.REFRESH_TOKEN))
 					timer.start()
 
-					if self.connected_callback:
-						self.connected_callback()
+					if self.connected_callback: self.connected_callback()
 
 					print(colored("Connection status:", attrs=["bold"]), colored("Connected", "green"))
-				except Exception as exception:
+				except:
 					# Try to connect again in 60 seconds
 					timer = Timer(60, lambda: self.events.put(FirebaseEvent.CONNECT))
 					timer.start()
@@ -95,13 +97,12 @@ class FirebaseConnection:
 					print(colored(f"Failed to connect (retrying in 60 seconds)", "red"))
 
 			# If we are connected, disconnect and retry
-			if event == FirebaseEvent.DISCONNECT or event == FirebaseEvent.STOP:
-				if self.user:
-					if timer: timer.cancel()
-
+			if event == FirebaseEvent.DISCONNECT:
+				if self.connected():
 					self.user = None
-					if self.disconnected_callback:
-						self.disconnected_callback()
+
+					if timer: timer.cancel()
+					if self.disconnected_callback: self.disconnected_callback()
 
 					# Try to connect again in 60 seconds
 					timer = Timer(60, lambda: self.events.put(FirebaseEvent.CONNECT))
@@ -111,13 +112,21 @@ class FirebaseConnection:
 
 			# Refresh the token and start a new timer
 			if event == FirebaseEvent.REFRESH_TOKEN:
-				self.user = auth.refresh(self.user["refreshToken"])
+				self.user = app.auth.refresh(self.user["refreshToken"])
 
 				timer = Timer(45 * 60, lambda: self.events.put(FirebaseEvent.REFRESH_TOKEN))
 				timer.start()
 
+			# Run disconnect callback and stop thread
 			if event == FirebaseEvent.STOP:
+				if timer: timer.cancel()
+
+				if self.connected():
+					self.user = None
+					if self.disconnected_callback: self.disconnected_callback()
+
 				return
+
 
 	def stop(self):
 		self.events.put(FirebaseEvent.STOP)
