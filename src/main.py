@@ -3,6 +3,7 @@ import sys
 from signal import signal, SIGINT
 from termcolor import colored
 from time import sleep
+from threading import Timer
 
 import requests
 from requests.adapters import TimeoutSauce
@@ -67,6 +68,9 @@ def stop(*_):
 	sys.exit(0)
 
 signal(SIGINT, stop)
+
+# Should be removed once water sensor is merged
+Timer(3, lambda: database.send_water_level_notification()).start()
 
 while True:
 	if is_raspberry_pi:

@@ -127,7 +127,6 @@ class FirebaseConnection:
 
 				return
 
-
 	def stop(self):
 		self.events.put(FirebaseEvent.STOP)
 
