@@ -99,7 +99,7 @@ class FirebaseDatabase:
 			try:
 				if time() >= self.next_sync_time:
 					# This can be used to determine if the Raspberry Pi has internet access
-					app.database.child(f"{self.path}/last_sync_time").set(int(time()))
+					app.database.child(f"{self.path}/last_sync_time").set(int(time()), self.connection.token())
 
 					if self.queued_water_level_notification:
 						app.database.child(f"{self.path}/water_level_low").set(True)
