@@ -86,7 +86,7 @@ class FirebaseDatabase:
 			try:
 				if time() >= self.next_sync_time:
 					# This can be used to determine if the Raspberry Pi has internet access
-					app.database.child(f"{self.path}/last_sync_time").set(int(time()))
+					app.database.child(f"{self.path}/last_sync_time").set(int(time()), self.connection.token())
 					self.next_sync_time = time() + sync_time
 			except:
 				print(colored(f"Syncing timed out", "red"))
