@@ -102,7 +102,7 @@ class FirebaseDatabase:
 					app.database.child(f"{self.path}/last_sync_time").set(int(time()), self.connection.token())
 
 					if self.queued_water_level_notification:
-						app.database.child(f"{self.path}/water_level_low").set(True)
+						app.database.child(f"{self.path}/water_level_low").set(True, self.connection.token())
 						self.queued_water_level_notification = False
 
 					self.next_sync_time = time() + sync_time
