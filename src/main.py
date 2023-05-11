@@ -44,7 +44,6 @@ if is_raspberry_pi:
 print(colored("Initializing Firebase...", attrs=["bold"]))
 
 callbacks = {
-	"target_moisture": moisture.callback,
 	"target_light_level": light.callback
 } if is_raspberry_pi else {}
 
@@ -75,6 +74,7 @@ Timer(3, lambda: database.send_water_level_notification()).start()
 while True:
 	if is_raspberry_pi:
 		plant_detector.detect_plant()
+		moisture.update(database)
 		light.run_light_automation(database)
 		water_sensor.set_water_sensor_arduino()
 
