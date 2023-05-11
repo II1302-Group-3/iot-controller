@@ -32,7 +32,7 @@ sync_time = 10
 I2C_SDA_PIN = 2
 I2C_SCL_PIN = 3
 
-light_threshold = 0 
+light_threshold = 0
 
 i2c = busio.I2C(I2C_SCL_PIN, I2C_SDA_PIN)
 veml7700 = adafruit_veml7700.VEML7700(i2c)
@@ -79,17 +79,17 @@ class FirebaseDatabase:
 
 		if callback:
 			callback(value)
-		
+
 	def statistics(self):
 		local_tz = pytz.timezone('Etc/GMT-2')
 		now = datetime.now(local_tz)
 		min_now = now.strftime("%M")[:-1]
 		hour_str = now.strftime("%-H")
-		self.database.child(f"{self.path}/light_level/{date.today()}/{hour_str}/{min_now}").set(light.light_level)
-		self.database.child(f"{self.path}/temperature_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.temp)
-		self.database.child(f"{self.path}/humidity_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.humidity)
-		self.database.child(f"{self.path}/moisture_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.moisture)
-		
+		self.database.child(f"{self.path}/light_level/{date.today()}/{hour_str}/{min_now}").set(light.light_level, self.user["idToken"])
+		self.database.child(f"{self.path}/temperature_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.temp, self.user["idToken"])
+		self.database.child(f"{self.path}/humidity_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.humidity, self.user["idToken"])
+		self.database.child(f"{self.path}/moisture_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.moisture, self.user["idToken"])
+
 
 
 	# Needs to be called regularly to sync data to Firebase
@@ -100,7 +100,7 @@ class FirebaseDatabase:
 
 		if time() >= self.next_sync_time:
 			# This can be used to determine if the Raspberry Pi has internet access
-			self.database.child(f"{self.path}/last_sync_time").set(int(time()))
+			self.database.child(f"{self.path}/last_sync_time").set(int(time()), self.user["idToken"])
 			self.statistics()
 
 			self.next_sync_time = time() + 600
