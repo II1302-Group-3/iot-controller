@@ -1,14 +1,18 @@
 import firebase.app as app
 from firebase.connection import FirebaseConnection
 
+from datetime import date, datetime
 from threading import Thread
 from time import sleep, time
 from termcolor import colored
 
+import pytz
+import sys
+
 # We can't watch all values because then we will get a notification when we upload sensor values
 watched_keys = ["target_moisture", "target_light_level"]
 # How many seconds should pass between syncing to Firebase
-sync_time = 10
+sync_time = 10 * 60
 
 class FirebaseDatabase:
 	def __init__(self, login, callbacks={}):
@@ -16,6 +20,13 @@ class FirebaseDatabase:
 
 		self.target_moisture = 0
 		self.target_light_level = 0
+
+		self.light = 0
+		self.temperature = 0
+		self.humidity = 0
+		self.moisture = 0
+
+		self.sync_enabled = False
 
 		self.next_sync_time = 0
 		self.syncing = False
@@ -50,8 +61,8 @@ class FirebaseDatabase:
 
 			Thread(target=self.stream_thread, args=[key, callback], daemon=True).start()
 
-		# Sync immediately
-		self.next_sync_time = time()
+		# Sync after 10 seconds
+		self.next_sync_time = time() + 10
 		self.syncing = True
 
 		self.current_sync_thread = Thread(target=self.sync_thread, daemon=True)
@@ -94,24 +105,44 @@ class FirebaseDatabase:
 			print(colored(f"Stream {key} stopped", "red"))
 			self.connection.disconnect()
 
+	def statistics(self):
+		local_tz = pytz.timezone('Etc/GMT-2')
+		now = datetime.now(local_tz)
+		min_now = now.strftime("%M")[:-1]
+		hour_str = now.strftime("%-H")
+
+		app.database.child(f"{self.path}/light_level/{date.today()}/{hour_str}/{min_now}").set(self.light, self.connection.token())
+		app.database.child(f"{self.path}/temperature_level/{date.today()}/{hour_str}/{min_now}").set(self.temperature, self.connection.token())
+		app.database.child(f"{self.path}/humidity_level/{date.today()}/{hour_str}/{min_now}").set(self.humidity, self.connection.token())
+		app.database.child(f"{self.path}/moisture_level/{date.today()}/{hour_str}/{min_now}").set(self.moisture, self.connection.token())
+
 	def sync_thread(self):
 		while self.syncing:
-			try:
-				if time() >= self.next_sync_time:
+			if self.sync_enabled:
+				try:
 					# This can be used to determine if the Raspberry Pi has internet access
 					app.database.child(f"{self.path}/last_sync_time").set(int(time()), self.connection.token())
 
-					if self.queued_water_level_notification:
-						app.database.child(f"{self.path}/water_level_low").set(True, self.connection.token())
-						self.queued_water_level_notification = False
+					if time() >= self.next_sync_time:
+						self.statistics()
 
-					self.next_sync_time = time() + sync_time
-			except:
-				print(colored(f"Syncing timed out", "red"))
-				self.connection.disconnect()
-				return
+						if self.queued_water_level_notification:
+							app.database.child(f"{self.path}/water_level_low").set(True, self.connection.token())
+							self.queued_water_level_notification = False
+
+						self.next_sync_time = time() + sync_time
+				except Exception as e:
+					print(colored(f"Syncing timed out {e}", "red"))
+					self.connection.disconnect()
+					return
 
 			sleep(1)
+
+	def update_statistics(self, light, temperature, humidity, moisture):
+		self.light = light
+		self.temperature = temperature
+		self.humidity = humidity
+		self.moisture = moisture
 
 	def stop(self):
 		self.connection.stop()

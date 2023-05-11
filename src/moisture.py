@@ -1,21 +1,20 @@
-#import serial
-#ser = serial.Serial('/dev/ttyACM0',57600, timeout=1)
-#ser.reset_input_buffer()
-
 from smbus2 import SMBus
 from time import sleep
 
-addr = 0x8 # bus address
-bus = None
+import i2c_arduino_init
+import plant_detector
 
-def moisture_init():
-	global bus
+previous_target_moisture = 0
 
-	bus = SMBus(1) # indicates /dev/i2c-1
-	sleep(1)
+def update(database):
+	global previous_target_moisture
 
-# Called when the moisture changes in Firebase
-def moisture_callback(m):
-	m = int(m/4)
-	print(f"Sending moisture to Arduino: {m}")
-	bus.write_byte(addr,m)
+	target_moisture = database.target_moisture
+	if not plant_detector.detected_plant:
+		target_moisture = 0
+
+	if target_moisture != previous_target_moisture:
+		sleep(1)
+		print(f"Sending moisture to Arduino: {target_moisture}")
+		i2c_arduino_init.bus.write_word_data(i2c_arduino_init.address,0x00,target_moisture)
+		previous_target_moisture = target_moisture
