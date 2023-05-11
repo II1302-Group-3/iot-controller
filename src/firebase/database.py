@@ -59,8 +59,8 @@ class FirebaseDatabase:
 
 			Thread(target=self.stream_thread, args=[key, callback], daemon=True).start()
 
-		# Sync immediately
-		self.next_sync_time = time()
+		# Sync after 10 seconds
+		self.next_sync_time = time() + 10
 		self.syncing = True
 
 		self.current_sync_thread = Thread(target=self.sync_thread, daemon=True)
