@@ -9,11 +9,6 @@ from termcolor import colored
 import pytz
 import sys
 
-sys.path.append("..")
-
-import light
-import sensor_data
-
 # We can't watch all values because then we will get a notification when we upload sensor values
 watched_keys = ["target_moisture", "target_light_level"]
 # How many seconds should pass between syncing to Firebase
@@ -26,7 +21,10 @@ class FirebaseDatabase:
 		self.target_moisture = 0
 		self.target_light_level = 0
 
-		self.light_level = 0
+		self.light = 0
+		self.temperature = 0
+		self.humidity = 0
+		self.moisture = 0
 
 		self.next_sync_time = 0
 		self.syncing = False
@@ -110,10 +108,11 @@ class FirebaseDatabase:
 		now = datetime.now(local_tz)
 		min_now = now.strftime("%M")[:-1]
 		hour_str = now.strftime("%-H")
-		app.database.child(f"{self.path}/light_level/{date.today()}/{hour_str}/{min_now}").set(light.light_level, self.connection.token())
-		app.database.child(f"{self.path}/temperature_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.temp, self.connection.token())
-		app.database.child(f"{self.path}/humidity_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.humidity, self.connection.token())
-		app.database.child(f"{self.path}/moisture_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.moisture, self.connection.token())
+
+		app.database.child(f"{self.path}/light_level/{date.today()}/{hour_str}/{min_now}").set(self.light, self.connection.token())
+		app.database.child(f"{self.path}/temperature_level/{date.today()}/{hour_str}/{min_now}").set(self.temperature, self.connection.token())
+		app.database.child(f"{self.path}/humidity_level/{date.today()}/{hour_str}/{min_now}").set(self.humidity, self.connection.token())
+		app.database.child(f"{self.path}/moisture_level/{date.today()}/{hour_str}/{min_now}").set(self.moisture, self.connection.token())
 
 	def sync_thread(self):
 		while self.syncing:
@@ -135,6 +134,12 @@ class FirebaseDatabase:
 				return
 
 			sleep(1)
+
+	def update_statistics(self, light, temperature, humidity, moisture):
+		self.light = light
+		self.temperature = temperature
+		self.humidity = humidity
+		self.moisture = moisture
 
 	def stop(self):
 		self.connection.stop()

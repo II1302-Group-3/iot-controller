@@ -77,6 +77,8 @@ while True:
 		plant_detector.detect_plant()
 		light.run_light_automation(database)
 		water_sensor.set_water_sensor_arduino()
+
 		sensor_data.request_sensor_data()
+		database.update_statistics(light.light_level, sensor_data.temp, sensor_data.humidity, sensor_data.moisture)
 
 	sleep(1)
