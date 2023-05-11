@@ -49,6 +49,5 @@ def run_light_automation(database):
 			print("Lights on")
 			one_time = 0
 
-
 def toggle_lights(on):
 	os.system(turn_usb_on if on else turn_usb_off)

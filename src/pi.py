@@ -25,34 +25,29 @@ if is_raspberry_pi:
 
 	from arduino_rst import arduino_rst_pin_init, restart_arduino, arduino_rst_pin_cleanup
 	from plant_detector import plant_detector_init, detect_plant, plant_detector_cleanup
-	
-	
 
 	# Starts all functions that only work on the Raspberry Pi
 	def init_raspberry_functions():
-		print(colored("Restarting Arduino...",attrs=["bold"]))
+		print(colored("Restarting Arduino...", attrs=["bold"]))
 		arduino_rst_pin_init()
 		restart_arduino()
 		print(colored("Done!\n", "green", attrs=["bold"]))
-		
+
 		print(colored("Initializing I2C for Arduino...",attrs=["bold"]))
 		i2c_arduino_init.i2c_arduino_init()
 		print(colored("Done!\n", "green", attrs=["bold"]))
 
-		print(colored("Initializing the light sensor...",attrs=["bold"]))
+		print(colored("Initializing the light sensor...", attrs=["bold"]))
 		light_init()
 		print(colored("Done!\n", "green", attrs=["bold"]))
 
-		print(colored("Initializing the plant detector...",attrs=["bold"]))
+		print(colored("Initializing the plant detector...", attrs=["bold"]))
 		plant_detector_init()
 		print(colored("Done!\n", "green", attrs=["bold"]))
-		
+
 		print(colored("Initializing the water level sensor...",attrs=["bold"]))
 		water_sensor.water_sensor_GPIO_init()
 		print(colored("Done!\n", "green", attrs=["bold"]))
-		
-
-
 
 	# Cleans up all functions that only work on the Raspberry Pi
 	def cleanup_raspberry_functions():

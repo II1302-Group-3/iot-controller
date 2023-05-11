@@ -1,8 +1,27 @@
 import sys
 
-
+from signal import signal, SIGINT
 from termcolor import colored
 from time import sleep
+from threading import Timer
+
+import requests
+from requests.adapters import TimeoutSauce
+
+# https://stackoverflow.com/questions/17782142/why-doesnt-requests-get-return-what-is-the-default-timeout-that-requests-get
+# Set a timeout for all requests, this needs to be done at the start
+class GlobalTimeout(TimeoutSauce):
+	def __init__(self, *args, **kwargs):
+		if kwargs["connect"] is None:
+			kwargs["connect"] = 5
+
+		# The timeout needs to be high because otherwise stream_thread will lose connection
+		if kwargs["read"] is None:
+			kwargs["read"] = 45
+
+		super(GlobalTimeout, self).__init__(*args, **kwargs)
+
+requests.adapters.TimeoutSauce = GlobalTimeout
 
 import authentication
 login = authentication.get_serial_and_key()
@@ -10,13 +29,13 @@ login = authentication.get_serial_and_key()
 from pi import *
 
 print(colored("Green Garden IoT Controller started", attrs=["bold"]))
-print(f"Python: {python_version}")
-print(f"System: {device_type} {system}")
-print(f"Serial number: {login['serial']}")
+print(colored("Python:", attrs=["bold"]), python_version)
+print(colored("System:", attrs=["bold"]), device_type, system)
+print(colored("Serial number:", attrs=["bold"]), login["serial"])
 print("")
 
 if python_version != "3.9":
-	print(colored(f"Warning: The Raspberry Pi uses Python 3.9 and you have {python_version}", "red", attrs=["bold"]))
+	print(colored(f"Warning: The Raspberry Pi uses Python 3.9 and you have {python_version}", "red"))
 	print("")
 
 if is_raspberry_pi:
@@ -29,32 +48,35 @@ callbacks = {
 	"target_light_level": light_callback
 } if is_raspberry_pi else {}
 
-from firebase import init_database
-database = init_database(login, callbacks)
+from firebase import FirebaseDatabase
+database = FirebaseDatabase(login, callbacks)
 
 print(colored("Done!\n", "green", attrs=["bold"]))
 
-try:
-	while True:
-		if is_raspberry_pi:
-			detect_plant()
-			run_light_automation(database)
-			water_sensor.set_water_sensor_arduino()
-			sensor_data.request_sensor_data()
-			#print("WATER LEVEL")
-			#print(water_sensor.water_level)
-			#print("SGJKLÖSGGJK")
-	
-		
+def stop(*_):
+	# Empty function
+	signal(SIGINT, lambda *_: {}database)
 
-		database.sync()
-		sleep(1)
-except KeyboardInterrupt:
 	print("\n")
-	print("Exiting...")
+	print(colored("Exiting...", attrs=["bold"]))
+
+	database.stop()
 
 	if is_raspberry_pi:
 		cleanup_raspberry_functions()
 
-	database.stop()
 	sys.exit(0)
+
+signal(SIGINT, stop)
+
+# Should be removed once water sensor is merged
+Timer(3, lambda: database.send_water_level_notification()).start()
+
+while True:
+	if is_raspberry_pi:
+		detect_plant()
+		run_light_automation()
+		water_sensor.set_water_sensor_arduino()
+		sensor_data.request_sensor_data()
+
+	sleep(1)
