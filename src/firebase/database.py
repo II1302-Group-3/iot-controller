@@ -26,6 +26,8 @@ class FirebaseDatabase:
 		self.humidity = 0
 		self.moisture = 0
 
+		self.sync_enabled = False
+
 		self.next_sync_time = 0
 		self.syncing = False
 
@@ -116,22 +118,23 @@ class FirebaseDatabase:
 
 	def sync_thread(self):
 		while self.syncing:
-			try:
-				if time() >= self.next_sync_time:
-					# This can be used to determine if the Raspberry Pi has internet access
-					app.database.child(f"{self.path}/last_sync_time").set(int(time()), self.connection.token())
+			if self.sync_enabled:
+				try:
+					if time() >= self.next_sync_time:
+						# This can be used to determine if the Raspberry Pi has internet access
+						app.database.child(f"{self.path}/last_sync_time").set(int(time()), self.connection.token())
 
-					self.statistics()
+						self.statistics()
 
-					if self.queued_water_level_notification:
-						app.database.child(f"{self.path}/water_level_low").set(True, self.connection.token())
-						self.queued_water_level_notification = False
+						if self.queued_water_level_notification:
+							app.database.child(f"{self.path}/water_level_low").set(True, self.connection.token())
+							self.queued_water_level_notification = False
 
-					self.next_sync_time = time() + sync_time
-			except Exception as e:
-				print(colored(f"Syncing timed out {e}", "red"))
-				self.connection.disconnect()
-				return
+						self.next_sync_time = time() + sync_time
+				except Exception as e:
+					print(colored(f"Syncing timed out {e}", "red"))
+					self.connection.disconnect()
+					return
 
 			sleep(1)
 

@@ -79,6 +79,10 @@ while True:
 		water_sensor.set_water_sensor_arduino()
 
 		sensor_data.request_sensor_data()
+
 		database.update_statistics(light.light_level, sensor_data.temp, sensor_data.humidity, sensor_data.moisture)
+		database.sync_enabled = plant_detector.detected_plant
+	else:
+		database.sync_enabled = True
 
 	sleep(1)
