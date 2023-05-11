@@ -1,18 +1,17 @@
 import RPi.GPIO as GPIO
+import os
+
 from time import sleep
 from smbus2 import SMBus
+
 import i2c_arduino_init
-
-
-
 
 #addr = None # bus address
 #bus = None # indicates /dev/i2c-1
 previous_state = None
 water_level = None
 
-
-def water_sensor_GPIO_init():
+def GPIO_init():
 	#addr = 0x8 # bus address
 	#bus = SMBus(1) # indicates /dev/i2c-1
 	previous_state = None
@@ -20,7 +19,6 @@ def water_sensor_GPIO_init():
 	GPIO.setmode(GPIO.BCM)
 
 	GPIO.setup(21, GPIO.IN)
-	
 
 def set_water_sensor_arduino():
 	global previous_state  # Use the global variable for previous state
@@ -40,15 +38,10 @@ def set_water_sensor_arduino():
 			i2c_arduino_init.bus.write_word_data(i2c_arduino_init.address, 0x00, 1500)
 			print("water level LOW") #value 1
 			water_level = 1
-			
+
 	sleep(2)
 
 	previous_state = current_state
-	
-def arduino_water_sensor_cleanup():
+
+def cleanup():
 	os.system("sudo echo 21 >/sys/class/gpio/unexport")
-	
-	
-	
-	
-	

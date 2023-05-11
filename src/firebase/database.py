@@ -1,12 +1,18 @@
 import firebase.app as app
 from firebase.connection import FirebaseConnection
 
+from datetime import date, datetime
 from threading import Thread
 from time import sleep, time
 from termcolor import colored
 
-from .. import sensor_data
 import pytz
+import sys
+
+sys.path.append("..")
+
+import light
+import sensor_data
 
 # We can't watch all values because then we will get a notification when we upload sensor values
 watched_keys = ["target_moisture", "target_light_level"]
@@ -104,10 +110,10 @@ class FirebaseDatabase:
 		now = datetime.now(local_tz)
 		min_now = now.strftime("%M")[:-1]
 		hour_str = now.strftime("%-H")
-		self.database.child(f"{self.path}/light_level/{date.today()}/{hour_str}/{min_now}").set(light.light_level, self.connection.token())
-		self.database.child(f"{self.path}/temperature_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.temp, self.connection.token())
-		self.database.child(f"{self.path}/humidity_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.humidity, self.connection.token())
-		self.database.child(f"{self.path}/moisture_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.moisture, self.connection.token())
+		app.database.child(f"{self.path}/light_level/{date.today()}/{hour_str}/{min_now}").set(light.light_level, self.connection.token())
+		app.database.child(f"{self.path}/temperature_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.temp, self.connection.token())
+		app.database.child(f"{self.path}/humidity_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.humidity, self.connection.token())
+		app.database.child(f"{self.path}/moisture_level/{date.today()}/{hour_str}/{min_now}").set(sensor_data.moisture, self.connection.token())
 
 	def sync_thread(self):
 		while self.syncing:
@@ -123,8 +129,8 @@ class FirebaseDatabase:
 						self.queued_water_level_notification = False
 
 					self.next_sync_time = time() + sync_time
-			except:
-				print(colored(f"Syncing timed out", "red"))
+			except Exception as e:
+				print(colored(f"Syncing timed out {e}", "red"))
 				self.connection.disconnect()
 				return
 

@@ -17,20 +17,21 @@ except:
 
 if is_raspberry_pi:
 	import i2c_arduino_init
+	import arduino_rst
+
+	import moisture
+	import light
+
+	import plant_detector
+
 	import sensor_data
 	import water_sensor
-
-	from moisture import moisture_callback
-	from light import light_init, light_callback, run_light_automation, toggle_lights
-
-	from arduino_rst import arduino_rst_pin_init, restart_arduino, arduino_rst_pin_cleanup
-	from plant_detector import plant_detector_init, detect_plant, plant_detector_cleanup
 
 	# Starts all functions that only work on the Raspberry Pi
 	def init_raspberry_functions():
 		print(colored("Restarting Arduino...", attrs=["bold"]))
-		arduino_rst_pin_init()
-		restart_arduino()
+		arduino_rst.pin_init()
+		arduino_rst.restart_arduino()
 		print(colored("Done!\n", "green", attrs=["bold"]))
 
 		print(colored("Initializing I2C for Arduino...",attrs=["bold"]))
@@ -38,20 +39,20 @@ if is_raspberry_pi:
 		print(colored("Done!\n", "green", attrs=["bold"]))
 
 		print(colored("Initializing the light sensor...", attrs=["bold"]))
-		light_init()
+		light.init()
 		print(colored("Done!\n", "green", attrs=["bold"]))
 
 		print(colored("Initializing the plant detector...", attrs=["bold"]))
-		plant_detector_init()
+		plant_detector.init()
 		print(colored("Done!\n", "green", attrs=["bold"]))
 
 		print(colored("Initializing the water level sensor...",attrs=["bold"]))
-		water_sensor.water_sensor_GPIO_init()
+		water_sensor.GPIO_init()
 		print(colored("Done!\n", "green", attrs=["bold"]))
 
 	# Cleans up all functions that only work on the Raspberry Pi
 	def cleanup_raspberry_functions():
-		restart_arduino()
-		arduino_rst_pin_cleanup()
-		water_sensor.arduino_water_sensor_cleanup()
-		plant_detector_cleanup()
+		arduino_rst.restart_arduino()
+		arduino_rst.pin_cleanup()
+		water_sensor.cleanup()
+		plant_detector.cleanup()
