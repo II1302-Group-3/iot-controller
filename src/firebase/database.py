@@ -12,7 +12,8 @@ import sys
 # We can't watch all values because then we will get a notification when we upload sensor values
 watched_keys = ["target_moisture", "target_light_level"]
 # How many seconds should pass between syncing to Firebase
-sync_time = 10 * 60
+sync_time = 10
+sync_statistics_time = 10 * 60
 
 class FirebaseDatabase:
 	def __init__(self, login, callbacks={}):
@@ -29,25 +30,17 @@ class FirebaseDatabase:
 		self.sync_enabled = False
 
 		self.next_sync_time = 0
+		self.next_statistics_sync_time = 0
+
 		self.syncing = False
 
 		# Will be sent once the Raspberry Pi connects to the internet
-		self.queued_water_level_notification = False
+		self.water_level_low = False
 
 		self.connection = FirebaseConnection(login, {
 			"connected": lambda: self.connected_handler(callbacks),
 			"disconnected": self.disconnected_handler
 		})
-
-	# TODO: Should be used by water_sensor.py to send a notification if GPIO pin goes from HIGH to LOW
-	def send_water_level_notification(self):
-		self.queued_water_level_notification = True
-
-		if self.connection.connected():
-			print("Sending notification to app that the water level is low")
-		else:
-			print(colored("Warning: Tried to send notification while offline", "yellow"))
-			print(colored("Notification will be sent as soon as the Raspberry Pi is connected to the internet", "yellow"))
 
 	def connected_handler(self, callbacks):
 		self.target_moisture = app.database.child(f"{self.path}/target_moisture").get(self.connection.token()).val() or 0
@@ -63,6 +56,8 @@ class FirebaseDatabase:
 
 		# Sync after 10 seconds
 		self.next_sync_time = time() + 10
+		self.next_statistics_sync_time = time() + 10
+
 		self.syncing = True
 
 		self.current_sync_thread = Thread(target=self.sync_thread, daemon=True)
@@ -120,19 +115,17 @@ class FirebaseDatabase:
 		while self.syncing:
 			if self.sync_enabled:
 				try:
-					# This can be used to determine if the Raspberry Pi has internet access
-					app.database.child(f"{self.path}/last_sync_time").set(int(time()), self.connection.token())
-
 					if time() >= self.next_sync_time:
-						self.statistics()
-
-						if self.queued_water_level_notification:
-							app.database.child(f"{self.path}/water_level_low").set(True, self.connection.token())
-							self.queued_water_level_notification = False
+						# This can be used to determine if the Raspberry Pi has internet access
+						app.database.child(f"{self.path}/last_sync_time").set(int(time()), self.connection.token())
+						app.database.child(f"{self.path}/water_level_low").set(self.water_level_low, self.connection.token())
 
 						self.next_sync_time = time() + sync_time
-				except Exception as e:
-					print(colored(f"Syncing timed out {e}", "red"))
+					if time() >= self.next_statistics_sync_time:
+						self.statistics()
+						self.next_statistics_sync_time = time() + sync_statistics_time
+				except:
+					print(colored(f"Syncing timed out", "red"))
 					self.connection.disconnect()
 					return
 

@@ -20,14 +20,14 @@ def GPIO_init():
 
 	GPIO.setup(21, GPIO.IN)
 
-def set_water_sensor_arduino():
+def set_water_sensor_arduino(database):
 	global previous_state  # Use the global variable for previous state
 	global water_level # save value for sending to firebase
 	sleep(1)
 	current_state = GPIO.input(21)
 
 	if current_state != previous_state:
-	# State has changed
+		# State has changed
 		if not current_state:
 			# There is water
 			i2c_arduino_init.bus.write_word_data(i2c_arduino_init.address, 0x00, 2500)
@@ -39,9 +39,10 @@ def set_water_sensor_arduino():
 			print("water level LOW") #value 1
 			water_level = 1
 
-	sleep(2)
+		previous_state = current_state
+		sleep(2)
 
-	previous_state = current_state
+	database.water_level_low = (water_level == 1)
 
 def cleanup():
 	os.system("sudo echo 21 >/sys/class/gpio/unexport")
