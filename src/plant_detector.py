@@ -12,7 +12,7 @@ def init():
 	os.system("sudo echo 'in' > /sys/class/gpio/gpio27/direction") # Setting gpio 17 as out
 	sleep(2)
 
-def detect_plant():
+def detect_plant(database):
 	global one_shot, detected_plant
 
 	detected_plant = check_for_plant()
@@ -25,6 +25,8 @@ def detect_plant():
 		if one_shot == 1:
 			arduino_rst.restart_arduino()
 			one_shot = 0
+
+	database.plant_detected = True if detected_plant == 1 else False
 
 def check_for_plant():
 	# This closes the file after reading is done

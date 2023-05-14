@@ -42,7 +42,7 @@ def set_water_sensor_arduino(database):
 		previous_state = current_state
 		sleep(2)
 
-	database.water_level_low = (water_level == 1)
+	database.water_level_low = True if water_level == 1 else False
 
 def cleanup():
 	os.system("sudo echo 21 >/sys/class/gpio/unexport")

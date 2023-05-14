@@ -70,7 +70,7 @@ signal(SIGINT, stop)
 
 while True:
 	if is_raspberry_pi:
-		plant_detector.detect_plant()
+		plant_detector.detect_plant(database)
 		moisture.update(database)
 		light.run_light_automation(database)
 		water_sensor.set_water_sensor_arduino(database)
@@ -78,9 +78,8 @@ while True:
 		sensor_data.request_sensor_data()
 
 		database.update_statistics(light.light_level, sensor_data.temp, sensor_data.humidity, sensor_data.moisture)
-		database.sync_enabled = plant_detector.detected_plant
 	else:
-		database.sync_enabled = True
 		database.water_level_low = True
+		database.plant_detected = True
 
 	sleep(1)
