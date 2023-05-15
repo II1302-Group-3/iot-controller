@@ -8,7 +8,7 @@ one_shot = 0
 
 def init():
 	os.system("sudo echo '27' > /sys/class/gpio/export") # Open gpio 17
-	sleep(0.3)
+	sleep(1)
 	os.system("sudo echo 'in' > /sys/class/gpio/gpio27/direction") # Setting gpio 17 as out
 	sleep(2)
 

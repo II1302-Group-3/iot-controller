@@ -36,6 +36,7 @@ def callback(light_thres):
 
 def run_light_automation(database):
 	global one_time, light_level
+	sleep(1)
 	light_level = veml7700.light
 	database.light_level = light_level
 	print("Light value: ",light_level)
