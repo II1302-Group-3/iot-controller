@@ -9,7 +9,7 @@ previous_target_moisture = 0
 def update(database):
 	global previous_target_moisture
 
-	target_moisture = database.target_moisture
+	target_moisture = database.target_moisture * 10
 	if not plant_detector.detected_plant:
 		target_moisture = 0
 
