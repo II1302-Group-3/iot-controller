@@ -90,11 +90,11 @@ class FirebaseConnection:
 
 					print(colored("Connection status:", attrs=["bold"]), colored("Connected", "green"))
 				except:
-					# Try to connect again in 60 seconds
-					timer = Timer(60, lambda: self.events.put(FirebaseEvent.CONNECT))
+					# Try to connect again in 10 seconds
+					timer = Timer(10, lambda: self.events.put(FirebaseEvent.CONNECT))
 					timer.start()
 
-					print(colored(f"Failed to connect (retrying in 60 seconds)", "red"))
+					print(colored(f"Failed to connect (retrying in 10 seconds)", "red"))
 
 			# If we are connected, disconnect and retry
 			if event == FirebaseEvent.DISCONNECT:
@@ -104,8 +104,8 @@ class FirebaseConnection:
 					if timer: timer.cancel()
 					if self.disconnected_callback: self.disconnected_callback()
 
-					# Try to connect again in 60 seconds
-					timer = Timer(60, lambda: self.events.put(FirebaseEvent.CONNECT))
+					# Try to connect again in 10 seconds
+					timer = Timer(10, lambda: self.events.put(FirebaseEvent.CONNECT))
 					timer.start()
 
 					print(colored("Connection status:", attrs=["bold"]), colored("Disconnected", "red"))
