@@ -72,7 +72,10 @@ while True:
 	if is_raspberry_pi:
 		plant_detector.detect_plant(database)
 		moisture.update(database)
-		light.run_light_automation(database)
+		try:
+			light.run_light_automation(database)
+		except:
+			print("run_light_automation failed, cable is probably loose")
 		water_sensor.set_water_sensor_arduino(database)
 
 		sensor_data.request_sensor_data()
